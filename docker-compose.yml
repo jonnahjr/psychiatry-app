@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Supabase Local Development (PostgreSQL + Supabase services)
+  supabase:
+    image: supabase/postgres:15.1.0.147
+    container_name: tele-psychiatry-supabase
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: postgres
+    ports:
+      - "54322:5432"
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+      - ./docker/supabase-init:/docker-entrypoint-initdb.d
+    networks:
+      - tele-psychiatry-network
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7.2-alpine
+    container_name: tele-psychiatry-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tele-psychiatry-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tele-psychiatry-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      SUPABASE_URL: http://localhost:54322
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      JWT_SECRET: your_super_secret_jwt_key_here
+      JWT_EXPIRE: 30d
+      CLIENT_URL: http://localhost:3000
+      # Add other environment variables as needed
+    ports:
+      - "5000:5000"
+    depends_on:
+      - supabase
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - tele-psychiatry-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Admin Portal
+  admin-portal:
+    build:
+      context: ./admin-portal
+      dockerfile: Dockerfile
+    container_name: tele-psychiatry-admin
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - tele-psychiatry-network
+
+volumes:
+  supabase_data:
+  redis_data:
+
+networks:
+  tele-psychiatry-network:
+    driver: bridge

@@ -1,0 +1,45 @@
+{
+  "name": "tele-psychiatry-admin",
+  "version": "1.0.0",
+  "description": "Admin portal for Tele-Psychiatry System",
+  "main": "src/index.tsx",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.1",
+    "axios": "^1.6.0",
+    "recharts": "^2.5.0",
+    "lucide-react": "^0.294.0",
+    "date-fns": "^2.30.0",
+    "react-hook-form": "^7.43.9",
+    "react-hot-toast": "^2.4.1",
+    "socket.io-client": "^4.7.4",
+    "@stripe/stripe-js": "^2.1.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.38.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.3.4",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2",
+    "typescript": "^5.0.2",
+    "vite": "^4.3.2",
+    "vitest": "^0.32.2",
+    "@vitest/ui": "^0.32.2",
+    "jsdom": "^22.1.0"
+  }
+}

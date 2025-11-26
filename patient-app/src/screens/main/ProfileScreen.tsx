@@ -107,9 +107,14 @@ const ProfileScreen = () => {
           contentContainerStyle={professionalProfileStyles.metricsHorizontalScroll}
         >
           <View style={professionalProfileStyles.metricCardCompact}>
-            <View style={[professionalProfileStyles.metricIconCompact, { backgroundColor: '#667eea20' }]}>
-              <MaterialIcons name="event-available" size={24} color="#667eea" />
-            </View>
+            <LinearGradient
+              colors={['#dbeafe', '#bfdbfe']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.metricIconCompact}
+            >
+              <MaterialIcons name="event-available" size={24} color="#2563eb" />
+            </LinearGradient>
             <View style={professionalProfileStyles.metricContent}>
               <Text style={professionalProfileStyles.metricValueCompact}>
                 {loadingMetrics ? '...' : healthMetrics.sessions}
@@ -119,9 +124,14 @@ const ProfileScreen = () => {
           </View>
 
           <View style={professionalProfileStyles.metricCardCompact}>
-            <View style={[professionalProfileStyles.metricIconCompact, { backgroundColor: '#10b98120' }]}>
-              <MaterialIcons name="psychology" size={24} color="#10b981" />
-            </View>
+            <LinearGradient
+              colors={['#dcfce7', '#bbf7d0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.metricIconCompact}
+            >
+              <MaterialIcons name="psychology" size={24} color="#16a34a" />
+            </LinearGradient>
             <View style={professionalProfileStyles.metricContent}>
               <Text style={professionalProfileStyles.metricValueCompact}>
                 {loadingMetrics ? '...' : `${healthMetrics.wellnessScore}%`}
@@ -131,9 +141,14 @@ const ProfileScreen = () => {
           </View>
 
           <View style={professionalProfileStyles.metricCardCompact}>
-            <View style={[professionalProfileStyles.metricIconCompact, { backgroundColor: '#f59e0b20' }]}>
-              <MaterialIcons name="book" size={24} color="#f59e0b" />
-            </View>
+            <LinearGradient
+              colors={['#fef3c7', '#fde68a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.metricIconCompact}
+            >
+              <MaterialIcons name="book" size={24} color="#d97706" />
+            </LinearGradient>
             <View style={professionalProfileStyles.metricContent}>
               <Text style={professionalProfileStyles.metricValueCompact}>
                 {loadingMetrics ? '...' : healthMetrics.journalEntries}
@@ -143,9 +158,14 @@ const ProfileScreen = () => {
           </View>
 
           <View style={professionalProfileStyles.metricCardCompact}>
-            <View style={[professionalProfileStyles.metricIconCompact, { backgroundColor: '#ef444420' }]}>
-              <MaterialIcons name="medication" size={24} color="#ef4444" />
-            </View>
+            <LinearGradient
+              colors={['#fef2f2', '#fecaca']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.metricIconCompact}
+            >
+              <MaterialIcons name="medication" size={24} color="#dc2626" />
+            </LinearGradient>
             <View style={professionalProfileStyles.metricContent}>
               <Text style={professionalProfileStyles.metricValueCompact}>
                 {loadingMetrics ? '...' : healthMetrics.prescriptions}
@@ -201,29 +221,39 @@ const ProfileScreen = () => {
         <Text style={professionalProfileStyles.sectionTitle}>Quick Actions</Text>
 
         <View style={professionalProfileStyles.actionsGrid}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={professionalProfileStyles.actionCard}
             onPress={() => navigation.navigate('Doctors' as never)}
           >
-            <View style={professionalProfileStyles.actionIcon}>
-              <MaterialIcons name="event" size={24} color="#667eea" />
-            </View>
+            <LinearGradient
+              colors={['#dbeafe', '#bfdbfe']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.actionIcon}
+            >
+              <MaterialIcons name="event" size={24} color="#2563eb" />
+            </LinearGradient>
             <Text style={professionalProfileStyles.actionTitle}>Book Session</Text>
             <Text style={professionalProfileStyles.actionSubtitle}>Schedule appointment</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={professionalProfileStyles.actionCard}
             onPress={() => navigation.navigate('Chat' as never)}
           >
-            <View style={professionalProfileStyles.actionIcon}>
-              <MaterialIcons name="chat" size={24} color="#10b981" />
-            </View>
+            <LinearGradient
+              colors={['#e0e7ff', '#c7d2fe']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.actionIcon}
+            >
+              <MaterialIcons name="chat" size={24} color="#6366f1" />
+            </LinearGradient>
             <Text style={professionalProfileStyles.actionTitle}>Message Doctor</Text>
             <Text style={professionalProfileStyles.actionSubtitle}>Send secure message</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={professionalProfileStyles.actionCard}
             onPress={() => {
               navigation.navigate('Prescriptions' as never);
@@ -234,14 +264,19 @@ const ProfileScreen = () => {
               );
             }}
           >
-            <View style={professionalProfileStyles.actionIcon}>
-              <MaterialIcons name="medication" size={24} color="#f59e0b" />
-            </View>
+            <LinearGradient
+              colors={['#fef3c7', '#fde68a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.actionIcon}
+            >
+              <MaterialIcons name="medication" size={24} color="#d97706" />
+            </LinearGradient>
             <Text style={professionalProfileStyles.actionTitle}>Refill Request</Text>
             <Text style={professionalProfileStyles.actionSubtitle}>Request prescription</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={professionalProfileStyles.actionCard}
             onPress={() => {
               Alert.alert(
@@ -249,8 +284,8 @@ const ProfileScreen = () => {
                 'In case of emergency, please call:\n\nEmergency: 911\nCrisis Hotline: 988\n\nWould you like to call emergency services?',
                 [
                   { text: 'Cancel', style: 'cancel' },
-                  { 
-                    text: 'Call 911', 
+                  {
+                    text: 'Call 911',
                     style: 'destructive',
                     onPress: () => {
                       Alert.alert('Emergency', 'Please dial 911 on your phone for immediate assistance.');
@@ -260,9 +295,14 @@ const ProfileScreen = () => {
               );
             }}
           >
-            <View style={professionalProfileStyles.actionIcon}>
-              <MaterialIcons name="emergency" size={24} color="#ef4444" />
-            </View>
+            <LinearGradient
+              colors={['#fef2f2', '#fecaca']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={professionalProfileStyles.actionIcon}
+            >
+              <MaterialIcons name="emergency" size={24} color="#dc2626" />
+            </LinearGradient>
             <Text style={professionalProfileStyles.actionTitle}>Emergency</Text>
             <Text style={professionalProfileStyles.actionSubtitle}>24/7 crisis support</Text>
           </TouchableOpacity>

@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
+import { DoctorCard } from '../../components/DoctorCard';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
 
 interface Doctor {
@@ -216,68 +217,25 @@ const DoctorsScreen = () => {
     );
   };
 
-  const renderDoctorCard = (doctor: Doctor, index: number) => {
-    const palette = gradientPalettes[index % gradientPalettes.length] || gradientPalettes[0];
-    const getLastSeen = () => {
-      if (doctor.isOnline) return null;
-      const hours = [1, 2, 3, 5, 8, 12, 24];
-      const randomHour = hours[Math.floor(Math.random() * hours.length)];
-      return `Last seen ${randomHour}h ago`;
-    };
-
-    return (
-      <Animated.View key={doctor.id} entering={FadeInUp.delay(index * 60)} style={styles.doctorCardWrapper}>
-        <LinearGradient colors={palette!} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.unifiedCard}>
-          <View style={styles.cardTopRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarInitials}>{doctor.name.split(' ').map(n => n[0]).join('')}</Text>
-              {doctor.isOnline && <View style={styles.onlineDot} />}
-            </View>
-            <View style={styles.badgeRow}>
-              <View style={[styles.doctorBadge, doctor.isOnline && styles.onlineBadge]}>
-                <Text style={styles.badgeText}>{doctor.isOnline ? 'Online now' : getLastSeen()}</Text>
-              </View>
-              <Text style={styles.ratingChip}>⭐ {doctor.rating}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.doctorName}>{doctor.name}</Text>
-          <Text style={styles.doctorSpecialty}>{doctor.specialty}</Text>
-          <Text style={styles.doctorMeta}>
-            {doctor.experience} yrs experience{doctor.isOnline ? ` • ${doctor.location}` : ''}
-          </Text>
-
-          <View style={styles.languageRow}>
-            {doctor.languages.slice(0, 3).map(lang => (
-              <View key={lang} style={styles.languageChip}>
-                <Text style={styles.languageText}>{lang}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.doctorStats}>
-            <View style={styles.statItem}>
-              <Icon name="event-available" size={18} color="#fff" />
-              <Text style={styles.statLabelWhite}>{doctor.nextAvailable}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Icon name="paid" size={18} color="#fff" />
-              <Text style={styles.statLabelWhite}>${doctor.consultationFee}/session</Text>
-            </View>
-          </View>
-
-          <View style={styles.cardActions}>
-            <TouchableOpacity style={styles.outlineButtonWhite} onPress={() => handleViewProfile(doctor)}>
-              <Text style={styles.outlineButtonTextWhite}>View profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.bookButtonSolid} onPress={() => handleBookAppointment(doctor)}>
-              <Text style={styles.bookButtonText}>Book Now</Text>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-    );
-  };
+  const renderDoctorCard = (doctor: Doctor, index: number) => (
+    <DoctorCard
+      key={doctor.id}
+      id={doctor.id}
+      name={doctor.name}
+      specialty={doctor.specialty}
+      experience={doctor.experience}
+      rating={doctor.rating}
+      reviewCount={doctor.reviewCount}
+      location={doctor.location}
+      languages={doctor.languages}
+      nextAvailable={doctor.nextAvailable}
+      consultationFee={doctor.consultationFee}
+      isOnline={doctor.isOnline}
+      index={index}
+      onViewProfile={() => handleViewProfile(doctor)}
+      onBookNow={() => handleBookAppointment(doctor)}
+    />
+  );
 
   return (
     <ScrollView

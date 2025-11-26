@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
+import { DoctorCard } from '../../components/DoctorCard';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
 
 interface Appointment {
@@ -188,78 +189,22 @@ const AppointmentsScreen = () => {
   ];
 
   const renderAppointmentCard = (appointment: Appointment, index: number) => {
-    const palette = appointmentGradients[index % appointmentGradients.length] || appointmentGradients[0];
     const isUpcoming = appointment.status === 'confirmed' || appointment.status === 'scheduled';
 
     return (
-      <Animated.View key={appointment.id} entering={FadeInUp.delay(index * 80)} style={styles.cardWrapper}>
-        <LinearGradient colors={palette as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.unifiedAppointmentCard}>
-          <View style={styles.appointmentCardTopRow}>
-            <View style={styles.appointmentAvatar}>
-              <Text style={styles.appointmentAvatarInitials}>
-                {appointment.doctorName.split(' ').map(n => n[0]).join('')}
-              </Text>
-            </View>
-            <View style={styles.appointmentBadgeRow}>
-              <View style={[styles.appointmentStatusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Text style={styles.appointmentStatusText}>
-                  {getStatusIcon(appointment.status)} {appointment.status}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.appointmentDoctorName}>{appointment.doctorName}</Text>
-          <Text style={styles.appointmentSpecialty}>{appointment.doctorSpecialty}</Text>
-          <Text style={styles.appointmentType}>{appointment.type}</Text>
-
-          <View style={styles.appointmentDetailsRow}>
-            <View style={styles.appointmentDetailItem}>
-              <Icon name="calendar-today" size={18} color="#fff" />
-              <Text style={styles.appointmentDetailText}>{appointment.date}</Text>
-            </View>
-            <View style={styles.appointmentDetailItem}>
-              <Icon name="schedule" size={18} color="#fff" />
-              <Text style={styles.appointmentDetailText}>{appointment.time}</Text>
-            </View>
-          </View>
-
-          {appointment.notes && (
-            <View style={styles.appointmentNotesContainer}>
-              <Text style={styles.appointmentNotesText}>{appointment.notes}</Text>
-            </View>
-          )}
-
-          {isUpcoming && (
-            <View style={styles.appointmentActions}>
-              <TouchableOpacity 
-                style={styles.appointmentOutlineButton} 
-                onPress={() => handleReschedule(appointment)}
-              >
-                <Text style={styles.appointmentOutlineText}>Reschedule</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.appointmentPrimaryButton} 
-                onPress={() => handleAppointmentPress(appointment)}
-              >
-                <Icon name="videocam" size={18} color="#111" />
-                <Text style={styles.appointmentPrimaryText}>Join Call</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {!isUpcoming && (
-            <View style={styles.appointmentActions}>
-              <TouchableOpacity 
-                style={styles.appointmentCancelButton} 
-                onPress={() => handleCancel(appointment)}
-              >
-                <Text style={styles.appointmentCancelText}>View Details</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </LinearGradient>
-      </Animated.View>
+      <DoctorCard
+        key={appointment.id}
+        id={appointment.id}
+        name={appointment.doctorName}
+        specialty={appointment.doctorSpecialty}
+        customMeta={`${appointment.date} • ${appointment.time}`}
+        customBadge={`${getStatusIcon(appointment.status)} ${appointment.status}`}
+        nextAvailable={appointment.type}
+        showStats={false}
+        showActions={false}
+        index={index}
+        onPress={() => handleAppointmentPress(appointment)}
+      />
     );
   };
 

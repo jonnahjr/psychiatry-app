@@ -1143,49 +1143,79 @@ const DashboardScreenContent = () => {
           <Text style={futuristicStyles.actionsTitle}>Quick Actions</Text>
           <View style={futuristicStyles.actionsGrid}>
             <TouchableOpacity style={futuristicStyles.actionCard} onPress={handleBookAppointment}>
-              <View style={[futuristicStyles.actionIcon, { backgroundColor: '#dbeafe' }]}>
+              <LinearGradient
+                colors={['#dbeafe', '#bfdbfe']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={futuristicStyles.actionIcon}
+              >
                 <MaterialIcons name="event-available" size={28} color="#2563eb" />
-              </View>
+              </LinearGradient>
               <Text style={futuristicStyles.actionTitle}>Book Appointment</Text>
               <Text style={futuristicStyles.actionSubtitle}>Schedule new session</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={futuristicStyles.actionCard} onPress={handleChat}>
-              <View style={[futuristicStyles.actionIcon, { backgroundColor: '#e0e7ff' }]}>
+              <LinearGradient
+                colors={['#e0e7ff', '#c7d2fe']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={futuristicStyles.actionIcon}
+              >
                 <MaterialIcons name="chat" size={28} color="#6366f1" />
-              </View>
+              </LinearGradient>
               <Text style={futuristicStyles.actionTitle}>Chat with Doctor</Text>
               <Text style={futuristicStyles.actionSubtitle}>Secure messaging</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={futuristicStyles.actionCard} onPress={() => {}}>
-              <View style={[futuristicStyles.actionIcon, { backgroundColor: '#dcfce7' }]}>
+              <LinearGradient
+                colors={['#dcfce7', '#bbf7d0']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={futuristicStyles.actionIcon}
+              >
                 <MaterialIcons name="medication" size={28} color="#16a34a" />
-              </View>
+              </LinearGradient>
               <Text style={futuristicStyles.actionTitle}>Medication Reminder</Text>
               <Text style={futuristicStyles.actionSubtitle}>Track your meds</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={futuristicStyles.actionCard} onPress={handleEmergency}>
-              <View style={[futuristicStyles.actionIcon, { backgroundColor: '#fef2f2' }]}>
+              <LinearGradient
+                colors={['#fef2f2', '#fecaca']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={futuristicStyles.actionIcon}
+              >
                 <MaterialIcons name="local-hospital" size={28} color="#dc2626" />
-              </View>
+              </LinearGradient>
               <Text style={futuristicStyles.actionTitle}>Emergency Contact</Text>
               <Text style={futuristicStyles.actionSubtitle}>24/7 crisis support</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={futuristicStyles.actionCard} onPress={() => {}}>
-              <View style={[futuristicStyles.actionIcon, { backgroundColor: '#f3e8ff' }]}>
+              <LinearGradient
+                colors={['#f3e8ff', '#e9d5ff']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={futuristicStyles.actionIcon}
+              >
                 <MaterialIcons name="science" size={28} color="#9333ea" />
-              </View>
+              </LinearGradient>
               <Text style={futuristicStyles.actionTitle}>Lab Results</Text>
               <Text style={futuristicStyles.actionSubtitle}>View test results</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={futuristicStyles.actionCard} onPress={() => {}}>
-              <View style={[futuristicStyles.actionIcon, { backgroundColor: '#fdf4ff' }]}>
+              <LinearGradient
+                colors={['#fdf4ff', '#f9e8ff']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={futuristicStyles.actionIcon}
+              >
                 <MaterialIcons name="book" size={28} color="#c026d3" />
-              </View>
+              </LinearGradient>
               <Text style={futuristicStyles.actionTitle}>Wellness Journal</Text>
               <Text style={futuristicStyles.actionSubtitle}>Daily reflections</Text>
             </TouchableOpacity>
@@ -1195,25 +1225,40 @@ const DashboardScreenContent = () => {
         {/* Features Row */}
         <View style={futuristicStyles.featuresRow}>
           <TouchableOpacity style={futuristicStyles.featureCard} onPress={() => {}}>
-            <View style={[futuristicStyles.featureIcon, { backgroundColor: '#dbeafe' }]}>
+            <LinearGradient
+              colors={['#dbeafe', '#bfdbfe']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={futuristicStyles.featureIcon}
+            >
               <MaterialIcons name="mic" size={20} color="#2563eb" />
-            </View>
+            </LinearGradient>
             <Text style={futuristicStyles.featureTitle}>Voice Journal</Text>
             <Text style={futuristicStyles.featureValue}>2 entries</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={futuristicStyles.featureCard} onPress={() => {}}>
-            <View style={[futuristicStyles.featureIcon, { backgroundColor: '#dcfce7' }]}>
+            <LinearGradient
+              colors={['#dcfce7', '#bbf7d0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={futuristicStyles.featureIcon}
+            >
               <MaterialIcons name="bedtime" size={20} color="#16a34a" />
-            </View>
+            </LinearGradient>
             <Text style={futuristicStyles.featureTitle}>Sleep Score</Text>
             <Text style={futuristicStyles.featureValue}>8.2 hrs</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={futuristicStyles.featureCard} onPress={() => {}}>
-            <View style={[futuristicStyles.featureIcon, { backgroundColor: '#fef3c7' }]}>
+            <LinearGradient
+              colors={['#fef3c7', '#fde68a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={futuristicStyles.featureIcon}
+            >
               <MaterialIcons name="trending-up" size={20} color="#d97706" />
-            </View>
+            </LinearGradient>
             <Text style={futuristicStyles.featureTitle}>Progress</Text>
             <Text style={futuristicStyles.featureValue}>+15%</Text>
           </TouchableOpacity>

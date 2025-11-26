@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 
 const SettingsScreen = () => {
@@ -107,9 +108,14 @@ const SettingsScreen = () => {
             style={styles.settingItem}
             onPress={() => handleNavigate('EditProfile')}
           >
-            <View style={styles.settingIcon}>
-              <MaterialIcons name="person" size={20} color="#6b7280" />
-            </View>
+            <LinearGradient
+              colors={['#dbeafe', '#bfdbfe']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.settingIcon}
+            >
+              <MaterialIcons name="person" size={20} color="#2563eb" />
+            </LinearGradient>
             <Text style={styles.settingLabel}>Edit Profile</Text>
             <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
           </TouchableOpacity>
@@ -118,9 +124,14 @@ const SettingsScreen = () => {
             style={styles.settingItem}
             onPress={() => handleNavigate('ChangePassword')}
           >
-            <View style={styles.settingIcon}>
-              <MaterialIcons name="lock" size={20} color="#6b7280" />
-            </View>
+            <LinearGradient
+              colors={['#fef3c7', '#fde68a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.settingIcon}
+            >
+              <MaterialIcons name="lock" size={20} color="#d97706" />
+            </LinearGradient>
             <Text style={styles.settingLabel}>Change Password</Text>
             <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
           </TouchableOpacity>
@@ -129,9 +140,14 @@ const SettingsScreen = () => {
             style={styles.settingItem}
             onPress={() => handleNavigate('Privacy')}
           >
-            <View style={styles.settingIcon}>
-              <MaterialIcons name="security" size={20} color="#6b7280" />
-            </View>
+            <LinearGradient
+              colors={['#dcfce7', '#bbf7d0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.settingIcon}
+            >
+              <MaterialIcons name="security" size={20} color="#16a34a" />
+            </LinearGradient>
             <Text style={styles.settingLabel}>Privacy Settings</Text>
             <MaterialIcons name="chevron-right" size={24} color="#9ca3af" />
           </TouchableOpacity>

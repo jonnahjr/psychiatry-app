@@ -6,15 +6,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
 import { DoctorCard } from '../../components/DoctorCard';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { getGreeting } from '../../utils/time';
 
 interface Appointment {
   id: string;
@@ -30,6 +33,7 @@ interface Appointment {
 
 const AppointmentsScreen = () => {
   const navigation = useNavigation();
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
 
   const appointments: Appointment[] = [
@@ -210,143 +214,202 @@ const AppointmentsScreen = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-      <LinearGradient colors={['#f97316', '#fb7185']} style={styles.heroCard}>
-        <Text style={styles.heroLabel}>Care timeline</Text>
-        {upcomingAppointment ? (
-          <>
-            <Text style={styles.heroDoctor}>{upcomingAppointment.doctorName}</Text>
-            <Text style={styles.heroMeta}>
-              {upcomingAppointment.date} · {upcomingAppointment.time}
-            </Text>
-            <View style={styles.heroTags}>
-              <View style={styles.heroTag}>
-                <Icon name="videocam" size={16} color="#fff" />
-                <Text style={styles.heroTagText}>Video session</Text>
-              </View>
-              <View style={styles.heroTag}>
-                <Icon name="done" size={16} color="#fff" />
-                <Text style={styles.heroTagText}>Confirmed</Text>
-              </View>
+      {/* Premium Header with Personalized Greeting */}
+      <View style={styles.premiumHeader}>
+        <LinearGradient
+          colors={['#6366f1', '#8b5cf6', '#ec4899']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.greetingSection}>
+              <Text style={styles.greetingText}>
+                {getGreeting()}, {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1).toLowerCase() : 'there'}
+              </Text>
+              <Text style={styles.headerSubtitle}>Your appointment dashboard</Text>
             </View>
-            <View style={styles.heroActions}>
-              <TouchableOpacity style={styles.heroOutlineButton} onPress={() => handleReschedule(upcomingAppointment)}>
-                <Text style={styles.heroOutlineText}>Reschedule</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.heroPrimaryButton} onPress={() => handleAppointmentPress(upcomingAppointment)}>
-                <Icon name="play-circle" size={18} color="#111" />
-                <Text style={styles.heroPrimaryText}>Join call</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          <>
-            <Text style={styles.heroDoctor}>No sessions planned</Text>
-            <Text style={styles.heroMeta}>Book an appointment to stay on track</Text>
-            <MedicalButton
-              title="Book appointment"
-              onPress={() => navigation.navigate('Doctors' as never)}
-              variant="primary"
-              size="medium"
-              style={styles.bookButton}
-            />
-          </>
-        )}
-      </LinearGradient>
 
-      <View style={styles.filterRow}>
-        {(['upcoming', 'completed', 'cancelled'] as const).map(filter => (
-          <TouchableOpacity
-            key={filter}
-            style={[styles.filterChip, activeFilter === filter && styles.filterChipActive]}
-            onPress={() => setActiveFilter(filter)}
+            <View style={styles.statsOverview}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{filteredAppointments.filter(a => a.status === 'confirmed' || a.status === 'scheduled').length}</Text>
+                <Text style={styles.statLabel}>Upcoming</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{filteredAppointments.filter(a => a.status === 'completed').length}</Text>
+                <Text style={styles.statLabel}>Completed</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{appointments.length}</Text>
+                <Text style={styles.statLabel}>Total</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+      </View>
+
+      {/* Quick Actions Bar */}
+      <View style={styles.quickActionsBar}>
+        <TouchableOpacity
+          style={[styles.quickActionButton, styles.primaryAction]}
+          onPress={() => navigation.navigate('Doctors' as never)}
+        >
+          <LinearGradient
+            colors={['#10b981', '#059669']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.actionGradient}
           >
-            <Text style={[styles.filterChipText, activeFilter === filter && styles.filterChipTextActive]}>
-              {filter === 'upcoming' ? 'Upcoming' : filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+            <Icon name="add" size={20} color="#fff" />
+            <Text style={styles.actionText}>Book New</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.quickActionButton, styles.secondaryAction]}
+          onPress={() => setActiveFilter('upcoming')}
+        >
+          <Icon name="schedule" size={20} color={colors.primary} />
+          <Text style={styles.secondaryActionText}>Upcoming</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.quickActionButton, styles.secondaryAction]}
+          onPress={() => setActiveFilter('completed')}
+        >
+          <Icon name="check-circle" size={20} color={colors.success} />
+          <Text style={styles.secondaryActionText}>History</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.timelineCard}>
-        <View style={styles.timelineHeader}>
-          <Text style={styles.timelineTitle}>Weekly overview</Text>
-          <Text style={styles.timelineSubtitle}>{appointments.length} total sessions</Text>
-        </View>
-        {appointments.slice(0, 4).map(item => (
-          <View key={item.id} style={styles.timelineItem}>
-            <View style={styles.timelineDot} />
-            <View style={styles.timelineDetails}>
-              <Text style={styles.timelineDate}>{item.date}</Text>
-              <Text style={styles.timelineDoctor}>{item.doctorName}</Text>
-              <Text style={styles.timelineMeta}>{item.time} • {item.type}</Text>
-            </View>
-            <Text style={[styles.timelineStatus, { color: getStatusColor(item.status) }]}>{item.status}</Text>
-          </View>
-        ))}
-      </View>
+      {/* Next Appointment Hero Card */}
+      {upcomingAppointment && (
+        <Animated.View entering={SlideInRight.delay(200)} style={styles.nextAppointmentCard}>
+          <LinearGradient
+            colors={['#1e293b', '#334155']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.appointmentHeroGradient}
+          >
+            <View style={styles.appointmentHeroContent}>
+              <View style={styles.appointmentHeroHeader}>
+                <View style={styles.appointmentTypeBadge}>
+                  <Icon name="videocam" size={16} color="#10b981" />
+                  <Text style={styles.appointmentTypeText}>Video Session</Text>
+                </View>
+                <View style={[styles.statusBadge, { backgroundColor: '#10b981' }]}>
+                  <Text style={styles.statusBadgeText}>Confirmed</Text>
+                </View>
+              </View>
 
-      {activeFilter === 'upcoming' && filteredAppointments.length > 0 && (
-        <View style={styles.upcomingSection}>
-          <View style={styles.upcomingHeader}>
-            <View>
-              <Text style={styles.upcomingTitle}>Upcoming Sessions</Text>
-              <Text style={styles.upcomingSubtitle}>Your next appointments</Text>
+              <Text style={styles.appointmentHeroTitle}>{upcomingAppointment.doctorName}</Text>
+              <Text style={styles.appointmentHeroSubtitle}>{upcomingAppointment.doctorSpecialty}</Text>
+
+              <View style={styles.appointmentHeroDetails}>
+                <View style={styles.appointmentDetail}>
+                  <Icon name="calendar-today" size={18} color="#94a3b8" />
+                  <Text style={styles.appointmentDetailText}>{upcomingAppointment.date}</Text>
+                </View>
+                <View style={styles.appointmentDetail}>
+                  <Icon name="schedule" size={18} color="#94a3b8" />
+                  <Text style={styles.appointmentDetailText}>{upcomingAppointment.time}</Text>
+                </View>
+              </View>
+
+              <View style={styles.appointmentHeroActions}>
+                <TouchableOpacity
+                  style={styles.appointmentRescheduleBtn}
+                  onPress={() => handleReschedule(upcomingAppointment)}
+                >
+                  <Icon name="edit-calendar" size={18} color="#64748b" />
+                  <Text style={styles.appointmentRescheduleText}>Reschedule</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.appointmentJoinBtn}
+                  onPress={() => handleAppointmentPress(upcomingAppointment)}
+                >
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.joinBtnGradient}
+                  >
+                    <Icon name="videocam" size={18} color="#fff" />
+                    <Text style={styles.appointmentJoinText}>Join Call</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.upcomingCountBadge}>
-              <Text style={styles.upcomingCount}>{filteredAppointments.length}</Text>
-            </View>
-          </View>
-          {filteredAppointments.map((appointment, index) => (
-            <Animated.View key={appointment.id} entering={FadeInUp.delay(index * 100)}>
-              {renderAppointmentCard(appointment, index)}
-            </Animated.View>
-          ))}
-        </View>
+          </LinearGradient>
+        </Animated.View>
       )}
 
-      {activeFilter !== 'upcoming' && (
-        <>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {activeFilter === 'completed' ? 'Completed sessions' : 'Cancelled sessions'}
-            </Text>
-            <Text style={styles.sectionCount}>{filteredAppointments.length} total</Text>
-          </View>
+      {/* Appointments List */}
+      <View style={styles.appointmentsSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {activeFilter === 'upcoming' ? 'Upcoming Appointments' :
+             activeFilter === 'completed' ? 'Session History' : 'Cancelled Sessions'}
+          </Text>
+          <Text style={styles.sectionCount}>
+            {filteredAppointments.length} {filteredAppointments.length === 1 ? 'session' : 'sessions'}
+          </Text>
+        </View>
 
-          {filteredAppointments.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>🗓️</Text>
-              <Text style={styles.emptyTitle}>Nothing here yet</Text>
-              <Text style={styles.emptyText}>Schedule a session to keep progress moving.</Text>
+        {filteredAppointments.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+              <Text style={styles.emptyIcon}>
+                {activeFilter === 'upcoming' ? '📅' : activeFilter === 'completed' ? '✅' : '❌'}
+              </Text>
             </View>
-          ) : (
-            filteredAppointments.map((appointment, index) => (
+            <Text style={styles.emptyTitle}>
+              {activeFilter === 'upcoming' ? 'No upcoming sessions' :
+               activeFilter === 'completed' ? 'No completed sessions yet' : 'No cancelled sessions'}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {activeFilter === 'upcoming' ? 'Book your first appointment to get started on your wellness journey' :
+               activeFilter === 'completed' ? 'Your completed sessions will appear here' : 'Cancelled sessions will be shown here'}
+            </Text>
+            {activeFilter === 'upcoming' && (
+              <MedicalButton
+                title="Book Appointment"
+                onPress={() => navigation.navigate('Doctors' as never)}
+                variant="primary"
+                size="medium"
+                style={styles.emptyActionButton}
+              />
+            )}
+          </View>
+        ) : (
+          <View style={styles.appointmentsList}>
+            {filteredAppointments.map((appointment, index) => (
               <Animated.View key={appointment.id} entering={FadeInUp.delay(index * 100)}>
-                {renderAppointmentCard(appointment, index)}
+                <DoctorCard
+                  id={appointment.id}
+                  name={appointment.doctorName}
+                  specialty={appointment.doctorSpecialty}
+                  customMeta={`${appointment.date} • ${appointment.time}`}
+                  customBadge={`${getStatusIcon(appointment.status)} ${appointment.status}`}
+                  nextAvailable={appointment.type}
+                  showStats={false}
+                  showActions={false}
+                  index={index}
+                  onPress={() => handleAppointmentPress(appointment)}
+                />
               </Animated.View>
-            ))
-          )}
-        </>
-      )}
+            ))}
+          </View>
+        )}
+      </View>
 
-      {activeFilter === 'upcoming' && filteredAppointments.length === 0 && (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🗓️</Text>
-          <Text style={styles.emptyTitle}>No upcoming sessions</Text>
-          <Text style={styles.emptyText}>Book your first appointment to get started</Text>
-          <MedicalButton
-            title="Book Appointment"
-            onPress={() => navigation.navigate('Doctors' as never)}
-            variant="primary"
-            size="medium"
-            style={styles.emptyBookButton}
-          />
-        </View>
-      )}
-
-      <View style={styles.bottomActions}>
+      {/* Bottom CTA */}
+      <View style={styles.bottomCTA}>
         <MedicalButton
-          title="Book new appointment"
+          title="Schedule New Session"
           onPress={() => navigation.navigate('Doctors' as never)}
           variant="primary"
           size="large"
@@ -364,6 +427,284 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: spacing.xxl * 2,
+  },
+
+  // Premium Header Styles
+  premiumHeader: {
+    marginBottom: spacing.xl,
+  },
+  headerGradient: {
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    borderRadius: borderRadius.xl,
+    margin: spacing.xl,
+    ...shadows.lg,
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  greetingSection: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  greetingText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+  },
+  statsOverview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.md,
+  },
+  statItem: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#ffffff',
+    marginBottom: spacing.xs,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginHorizontal: spacing.md,
+  },
+
+  // Quick Actions Bar
+  quickActionsBar: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
+    gap: spacing.sm,
+  },
+  quickActionButton: {
+    flex: 1,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  primaryAction: {
+    flex: 2,
+  },
+  secondaryAction: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: colors.gray[200],
+  },
+  actionGradient: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  actionText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  secondaryActionText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
+  // Next Appointment Hero Card
+  nextAppointmentCard: {
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  appointmentHeroGradient: {
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    ...shadows.xl,
+  },
+  appointmentHeroContent: {
+    alignItems: 'center',
+  },
+  appointmentHeroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: spacing.lg,
+  },
+  appointmentTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    gap: spacing.xs,
+  },
+  appointmentTypeText: {
+    color: '#10b981',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  statusBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  appointmentHeroTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  appointmentHeroSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  appointmentHeroDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: spacing.xl,
+  },
+  appointmentDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  appointmentDetailText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  appointmentHeroActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    width: '100%',
+  },
+  appointmentRescheduleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.xs,
+  },
+  appointmentRescheduleText: {
+    color: '#64748b',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  appointmentJoinBtn: {
+    flex: 2,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  joinBtnGradient: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  appointmentJoinText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+
+  // Appointments Section
+  appointmentsSection: {
+    paddingHorizontal: spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: colors.gray[900],
+  },
+  sectionCount: {
+    fontSize: 14,
+    color: colors.gray[500],
+    fontWeight: '600',
+  },
+  appointmentsList: {
+    gap: spacing.lg,
+  },
+
+  // Enhanced Empty States
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxl * 2,
+    paddingHorizontal: spacing.xl,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyIcon: {
+    fontSize: 40,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.gray[900],
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: colors.gray[600],
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: spacing.xl,
+  },
+  emptyActionButton: {
+    marginTop: spacing.lg,
+  },
+
+  // Bottom CTA
+  bottomCTA: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
   heroCard: {
     margin: spacing.xl,
@@ -542,18 +883,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
   },
-  sectionHeader: {
+  oldSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     marginTop: spacing.xl,
   },
-  sectionTitle: {
+  oldSectionTitle: {
     fontSize: 20,
     fontWeight: '700',
   },
-  sectionCount: {
+  oldSectionCount: {
     color: colors.gray[500],
   },
   emptyBookButton: {
@@ -633,7 +974,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     flex: 1,
   },
-  appointmentDetailText: {
+  oldAppointmentDetailText: {
     color: '#fff',
     fontSize: 13,
     fontWeight: '600',
@@ -696,15 +1037,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
-  emptyState: {
+  oldEmptyState: {
     alignItems: 'center',
     padding: spacing.xxl,
   },
-  emptyIcon: {
+  oldEmptyIcon: {
     fontSize: 56,
     marginBottom: spacing.md,
   },
-  emptyTitle: {
+  oldEmptyTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.gray[800],

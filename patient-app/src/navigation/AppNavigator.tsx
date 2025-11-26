@@ -5,6 +5,7 @@ import {View, Text, ActivityIndicator, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import {useAuth} from '../contexts/AuthContext';
+import {getGreeting} from '../utils/time';
 
 // Loading Screen
 import LoadingScreen from '../screens/loading/LoadingScreen';
@@ -51,6 +52,8 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const PatientTabNavigator = () => {
+  const { user } = useAuth();
+
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
@@ -113,6 +116,11 @@ const PatientTabNavigator = () => {
           fontWeight: '600',
           fontSize: 16,
         },
+        headerTitle: () => {
+          const greeting = getGreeting();
+          const userName = user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1).toLowerCase() : 'there';
+          return `${greeting}, ${userName}`;
+        },
         tabBarShowLabel: false, // Hide tab labels like Instagram
       })}>
       <Tab.Screen
@@ -123,8 +131,7 @@ const PatientTabNavigator = () => {
           </Suspense>
         )}
         options={{
-          title: 'Dashboard',
-          headerTitle: 'Patient Dashboard',
+          headerShown: true,
         }}
       />
       <Tab.Screen

@@ -19,7 +19,7 @@ export class AuthController {
         return;
       }
 
-      const { name, email, password, patientId, dateOfBirth, phone, address, emergencyContact } = req.body;
+      const { name, email, password, patientId, dateOfBirth, phone, address, emergencyContact, gender } = req.body;
 
       // Check if user already exists
       const { data: existingUser } = await supabase
@@ -79,6 +79,7 @@ export class AuthController {
           phone,
           address,
           emergency_contact: emergencyContact,
+          gender,
         })
         .select()
         .single();
@@ -129,16 +130,43 @@ export class AuthController {
         });
       }
 
-      const { email, password } = req.body;
+      const { identifier, password } = req.body;
 
-      // Get user from mock database
-      const { data: user, error } = await mockDb.from('users').select().eq('email', email).single();
+      let user;
 
-      if (error || !user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid credentials',
-        });
+      if (/^P\d{6}$/.test(identifier)) {
+        // Patient ID format, find by patient ID
+        const { data: patient, error: patientError } = await mockDb.from('patients').select('user_id').eq('patient_id', identifier).single();
+
+        if (patientError || !patient) {
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid credentials',
+          });
+        }
+
+        const { data: userData, error } = await mockDb.from('users').select().eq('id', patient.user_id).single();
+
+        if (error || !userData) {
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid credentials',
+          });
+        }
+
+        user = userData;
+      } else {
+        // Assume email
+        const { data: userData, error } = await mockDb.from('users').select().eq('email', identifier).single();
+
+        if (error || !userData) {
+          return res.status(401).json({
+            success: false,
+            message: 'Invalid credentials',
+          });
+        }
+
+        user = userData;
       }
 
       // Check password
@@ -362,7 +390,7 @@ export class AuthController {
 
   static async getDoctors(req: IAuthRequest, res: Response, next: NextFunction) {
     try {
-      const { data: doctors, error } = await mockDb.from('doctors').select().single();
+      const { data: doctors, error } = await (mockDb as any).getVerifiedDoctors();
 
       if (error) throw error;
 

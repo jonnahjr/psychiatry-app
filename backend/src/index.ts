@@ -1,4 +1,9 @@
-import express from 'express';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -6,7 +11,6 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
@@ -16,6 +20,7 @@ import patientRoutes from './routes/patient.routes';
 import doctorRoutes from './routes/doctor.routes';
 import adminRoutes from './routes/admin.routes';
 import appointmentRoutes from './routes/appointment.routes';
+import prescriptionRoutes from './routes/prescription.routes';
 import chatRoutes from './routes/chat.routes';
 import paymentRoutes from './routes/payment.routes';
 import videoRoutes from './routes/video.routes';
@@ -28,14 +33,18 @@ import { notFound } from './middleware/notFound.middleware';
 import { testConnection } from './config/supabase';
 
 // Import models for socket handling
-import Message from './models/Message';
-
-// Load environment variables
-dotenv.config();
+// import Message from './models/Message';
 
 // Create Express app
-const app = express();
+const app: Application = express();
 const server = createServer(app);
+
+// Simple request logger for debugging API requests (helps diagnose 500s)
+app.use('/api', (req, _res, next) => {
+  const origin = req.headers.origin || req.headers.host || 'unknown';
+  console.log(`[API] ${req.method} ${req.originalUrl} - from ${req.ip} - origin: ${origin}`);
+  next();
+});
 
 // Initialize Socket.io
 const io = new Server(server, {
@@ -87,6 +96,7 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/video', videoRoutes);
@@ -96,6 +106,29 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'Tele-Psychiatry API is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Quick ping/debug endpoints to help emulator/device connectivity checks
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'pong',
+    time: new Date().toISOString(),
+  });
+});
+
+app.get('/api/debug', (req, res) => {
+  res.status(200).json({
+    success: true,
+    ip: req.ip,
+    headers: {
+      host: req.headers.host,
+      origin: req.headers.origin,
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+    },
+    url: req.originalUrl,
     timestamp: new Date().toISOString(),
   });
 });
@@ -111,40 +144,40 @@ io.on('connection', (socket) => {
   });
 
   // Handle chat messages
-  socket.on('send-message', async (data) => {
-    try {
-      const { appointmentId, content, messageType, fileUrl, fileName } = data;
+  // socket.on('send-message', async (data) => {
+  //   try {
+  //     const { appointmentId, content, messageType, fileUrl, fileName } = data;
 
-      // Validate required fields
-      if (!appointmentId || !content) {
-        socket.emit('message-error', { error: 'Appointment ID and content are required' });
-        return;
-      }
+  //     // Validate required fields
+  //     if (!appointmentId || !content) {
+  //       socket.emit('message-error', { error: 'Appointment ID and content are required' });
+  //       return;
+  //     }
 
-      // Save message to database (you might want to add authentication here)
-      const message = new Message({
-        sender: data.senderId,
-        receiver: data.receiverId,
-        appointment: appointmentId,
-        content,
-        messageType: messageType || 'text',
-        fileUrl,
-        fileName,
-      });
+  //     // Save message to database (you might want to add authentication here)
+  //     const message = new Message({
+  //       sender: data.senderId,
+  //       receiver: data.receiverId,
+  //       appointment: appointmentId,
+  //       content,
+  //       messageType: messageType || 'text',
+  //       fileUrl,
+  //       fileName,
+  //     });
 
-      await message.save();
-      await message.populate('sender', 'name email role');
+  //     await message.save();
+  //     await message.populate('sender', 'name email role');
 
-      // Emit to all users in the appointment room
-      io.to(`appointment-${appointmentId}`).emit('receive-message', {
-        ...message.toObject(),
-        isFromSocket: true,
-      });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      socket.emit('message-error', { error: 'Failed to send message' });
-    }
-  });
+  //     // Emit to all users in the appointment room
+  //     io.to(`appointment-${appointmentId}`).emit('receive-message', {
+  //       ...message.toObject(),
+  //       isFromSocket: true,
+  //     });
+  //   } catch (error) {
+  //     console.error('Error sending message:', error);
+  //     socket.emit('message-error', { error: 'Failed to send message' });
+  //   }
+  // });
 
   // Handle typing indicators
   socket.on('typing-start', (data) => {

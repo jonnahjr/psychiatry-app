@@ -1,208 +1,176 @@
+// Re-export the cleaned implementation so all imports continue to work.
+export { default } from './PatientLoginScreenNew';
+// Re-export the cleaned implementation so all imports continue to work.
+export { default } from './PatientLoginScreenNew';
 import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../contexts/AuthContext';
-
-const PatientLoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
-  const navigation = useNavigation();
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log('Patient login attempt:', { email, password: '***' }); // Debug log
-      await login(email, password);
-      console.log('Patient login successful'); // Debug log
-      // Navigation will be handled by the auth context
-    } catch (error: any) {
-      console.error('Patient login failed:', error); // Debug log
-      Alert.alert('Login Failed', error.message || 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fillDemoCredentials = () => {
-    setEmail('john.doe@email.com');
-    setPassword('patient123');
-  };
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Patient Login</Text>
-        <Text style={styles.subtitle}>Access your health records</Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <LinearGradient
+        colors={['#eef2ff', '#ffffff']}
+        style={styles.topBackground}
+      />
 
-      <View style={styles.formContainer}>
-        <View style={styles.demoContainer}>
-          <Text style={styles.demoTitle}>Demo Patient Account:</Text>
-          <TouchableOpacity style={styles.demoButton} onPress={fillDemoCredentials}>
-            <Text style={styles.demoButtonText}>Use Demo Credentials</Text>
-          </TouchableOpacity>
-          <Text style={styles.demoText}>Email: john.doe@email.com</Text>
-          <Text style={styles.demoText}>Password: patient123</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <View style={styles.branding}>
+          <View style={styles.logoWrapper}>
+            <Image source={require('../../assets/D11.png')} style={styles.logoImage} />
+          </View>
+          <Text style={styles.headline}>Welcome back</Text>
+          <Text style={styles.lead}>Sign in to continue to your care</Text>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.formCard}>
+          <Text style={styles.label}>Patient ID or Email</Text>
+          <View style={styles.inputRow}>
+            <Feather name="user" size={18} color="#6b7280" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. P000001 or you@example.com"
+              placeholderTextColor="#9ca3af"
+              value={identifier}
+              onChangeText={setIdentifier}
+              autoCapitalize="none"
+            />
+          </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+          <Text style={[styles.label, { marginTop: 18 }]}>Password</Text>
+          <View style={styles.inputRow}>
+            <Feather name="lock" size={18} color="#6b7280" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Your password"
+              placeholderTextColor="#9ca3af"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              <Feather name={showPassword ? 'eye' : 'eye-off'} size={18} color="#6b7280" />
+            </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity
-          style={[styles.loginButton, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.loginButtonText}>Login</Text>
-          )}
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.rowCenter}>
+            <Text style={styles.muted}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}> 
+              <Text style={styles.link}> Create one</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity style={styles.ghostButton} onPress={fillDemoCredentials}>
+            <Icon name="play-circle-filled" size={18} color="#4f46e5" style={{ marginRight: 8 }} />
+            <Text style={styles.ghostText}>Try demo account</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={16} color="#6b7280" />
+          <Text style={styles.backText}>Back to role selection</Text>
         </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+            disabled={loading}
+          >
+            <LinearGradient
+              colors={['#6366f1', '#4f46e5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.loginButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                  <Feather name="log-in" size={20} color="#ffffff" style={styles.buttonIcon} />
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.registerButton}
-          onPress={() => navigation.navigate('Register' as never)}
-        >
-          <Text style={styles.registerButtonText}>New Patient? Register Here</Text>
-        </TouchableOpacity>
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.registerButtonText}>Don't have an account? <Text style={styles.registerLink}>Sign Up</Text></Text>
+          </TouchableOpacity>
+
+          <View style={styles.demoContainer}>
+            <TouchableOpacity style={styles.demoButton} onPress={fillDemoCredentials}>
+              <Icon name="play-circle-filled" size={20} color="#6366f1" style={styles.demoIcon} />
+              <Text style={styles.demoButtonText}>Try Demo Account</Text>
+            </TouchableOpacity>
+            <Text style={styles.demoText}>ID: P000001 | Password: patient123</Text>
+          </View>
+        </View>
 
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>← Back to Main</Text>
+          <Feather name="arrow-left" size={20} color="#6b7280" />
+          <Text style={styles.backButtonText}>Back to Role Selection</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.featuresContainer}>
-        <Text style={styles.featuresTitle}>Patient Features:</Text>
-        <View style={styles.featureList}>
-          <Text style={styles.featureItem}>• Book appointments with doctors</Text>
-          <Text style={styles.featureItem}>• Secure video consultations</Text>
-          <Text style={styles.featureItem}>• View medical records & prescriptions</Text>
-          <Text style={styles.featureItem}>• Chat with healthcare providers</Text>
-          <Text style={styles.featureItem}>• Manage health information</Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#0f172a',
   },
   header: {
-    alignItems: 'center',
+    backgroundColor: '#1e293b',
     paddingTop: 60,
-    paddingBottom: 30,
-    backgroundColor: '#10b981',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#ecfdf5',
-    fontWeight: '500',
-  },
-  formContainer: {
-    paddingHorizontal: 30,
-    paddingTop: 30,
-  },
-  demoContainer: {
-    backgroundColor: '#ecfdf5',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: '#10b981',
-  },
-  demoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#065f46',
-    textAlign: 'center',
-  },
-  demoButton: {
-    backgroundColor: '#10b981',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
+    paddingBottom: 40,
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
   },
-  demoButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+  logoContainer: {
+    marginBottom: 20,
   },
-  demoText: {
-    fontSize: 14,
-    color: '#065f46',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    padding: 15,
-    marginBottom: 15,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  loginButton: {
-    backgroundColor: '#10b981',
-    padding: 18,
-    borderRadius: 12,
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -212,63 +180,187 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  logoImage: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#f1f5f9',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#cbd5e1',
+    fontWeight: '400',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 40,
+  },
+  card: {
+    backgroundColor: '#1e293b',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  inputWrapper: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#e2e8f0',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#334155',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#475569',
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#f1f5f9',
+    paddingVertical: 16,
+  },
+  eyeIcon: {
+    padding: 4,
+  },
+  loginButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+    marginBottom: 24,
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loginButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
   loginButtonText: {
     color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  buttonIcon: {
+    marginLeft: 4,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  dividerText: {
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
   },
   registerButton: {
     alignItems: 'center',
-    marginTop: 20,
-    padding: 15,
+    paddingVertical: 16,
   },
   registerButtonText: {
-    color: '#10b981',
     fontSize: 16,
+    color: '#6b7280',
+  },
+  registerLink: {
+    color: '#6366f1',
     fontWeight: '600',
   },
-  backButton: {
+  demoContainer: {
+    backgroundColor: '#f3f4f6',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 15,
-    padding: 10,
+    marginTop: 16,
+  },
+  demoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 8,
+  },
+  demoIcon: {
+    marginRight: 8,
+  },
+  demoButtonText: {
+    color: '#6366f1',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  demoText: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
   },
   backButtonText: {
     color: '#6b7280',
     fontSize: 16,
-  },
-  featuresContainer: {
-    paddingHorizontal: 30,
-    paddingBottom: 40,
-    paddingTop: 20,
-  },
-  featuresTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  featureList: {
-    backgroundColor: '#ffffff',
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  featureItem: {
-    fontSize: 16,
-    color: '#374151',
-    marginBottom: 10,
-    lineHeight: 24,
+    marginLeft: 8,
+    fontWeight: '500',
   },
 });
 

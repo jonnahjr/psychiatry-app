@@ -16,6 +16,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
+import { getGreeting } from '../../utils/time';
 
 interface Doctor {
   id: string;
@@ -203,8 +204,17 @@ const DoctorsScreen = () => {
   };
 
   const handleViewProfile = (doctor: Doctor) => {
-    // Navigate to doctor profile
-    Alert.alert('Doctor Profile', `View detailed profile for ${doctor.name}`);
+    Alert.alert(
+      'Doctor Profile',
+      `${doctor.name}\n\n${doctor.specialty}\n${doctor.experience} years experience\n⭐ ${doctor.rating} (${doctor.reviewCount} reviews)\n\nEducation: ${doctor.education}\n\n${doctor.bio}\n\nLanguages: ${doctor.languages.join(', ')}\n\nConsultation Fee: $${doctor.consultationFee}/session\nNext Available: ${doctor.nextAvailable}`,
+      [
+        { text: 'Close', style: 'cancel' },
+        {
+          text: 'Book Appointment',
+          onPress: () => handleBookAppointment(doctor)
+        }
+      ]
+    );
   };
 
   const renderDoctorCard = (doctor: Doctor, index: number) => {
@@ -274,6 +284,7 @@ const DoctorsScreen = () => {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={['#4c6ef5', '#6c5ce7']} style={styles.heroCard}>
         <View>
+          <Text style={styles.heroGreeting}>{getGreeting()}!</Text>
           <Text style={styles.heroSubtitle}>Your care team</Text>
           <Text style={styles.heroTitle}>Handpicked specialists for you</Text>
           <Text style={styles.heroDescription}>
@@ -395,6 +406,12 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     paddingBottom: spacing.xxl,
     ...shadows.md,
+  },
+  heroGreeting: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
   },
   heroSubtitle: {
     color: '#cfd7ff',

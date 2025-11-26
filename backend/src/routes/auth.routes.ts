@@ -22,14 +22,7 @@ router.post(
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post(
-  '/login',
-  [
-    body('email').isEmail().withMessage('Please provide a valid email'),
-    body('password').exists().withMessage('Password is required'),
-  ],
-  AuthController.login
-);
+router.post('/login', AuthController.login);
 
 // @route   POST /api/auth/refresh
 // @desc    Refresh access token

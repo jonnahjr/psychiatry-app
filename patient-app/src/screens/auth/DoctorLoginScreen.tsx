@@ -8,16 +8,28 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  // add routes if needed
+};
 import { useAuth } from '../../contexts/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
 
 const DoctorLoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -28,7 +40,6 @@ const DoctorLoginScreen = () => {
     setLoading(true);
     try {
       await login(email, password);
-      // Navigation will be handled by the auth context
     } catch (error: any) {
       Alert.alert('Login Failed', error.message || 'An error occurred');
     } finally {
@@ -42,79 +53,146 @@ const DoctorLoginScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Doctor Login</Text>
-        <Text style={styles.subtitle}>Access your medical dashboard</Text>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoCircle}>
+            <Image source={require('../../assets/D11.png')} style={styles.logoImage} />
+          </View>
+        </View>
+        <Text style={styles.title}>Doctor Portal</Text>
+        <Text style={styles.subtitle}>Secure access to your medical dashboard</Text>
       </View>
 
-      <View style={styles.formContainer}>
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoTitle}>Doctor Access</Text>
-          <Text style={styles.infoText}>
-            Doctor accounts are created by administrators. Contact your system administrator
-            if you need access to the doctor portal.
-          </Text>
-        </View>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.card}>
+          <View style={styles.infoBox}>
+            <Icon name="security" size={24} color="#6366f1" />
+            <Text style={styles.infoTitle}>Verified Access Only</Text>
+            <Text style={styles.infoText}>
+              Doctor accounts are managed by administrators. Use your official credentials to access patient records and consultations.
+            </Text>
+          </View>
 
-        <View style={styles.demoContainer}>
-          <Text style={styles.demoTitle}>Demo Doctor Account:</Text>
-          <TouchableOpacity style={styles.demoButton} onPress={fillDemoCredentials}>
-            <Text style={styles.demoButtonText}>Use Demo Credentials</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Email Address</Text>
+            <View style={styles.inputContainer}>
+              <Feather name="mail" size={20} color="#6366f1" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email address"
+                placeholderTextColor="#9ca3af"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Password</Text>
+            <View style={styles.inputContainer}>
+              <Feather name="lock" size={20} color="#6366f1" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                placeholderTextColor="#9ca3af"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Feather
+                  name={showPassword ? 'eye' : 'eye-off'}
+                  size={20}
+                  color="#6b7280"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.loginButton, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <LinearGradient
+              colors={['#6366f1', '#4f46e5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.loginButtonGradient}
+            >
+              {loading ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <>
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                  <Feather name="log-in" size={20} color="#ffffff" style={styles.buttonIcon} />
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
-          <Text style={styles.demoText}>Email: dr.smith@telepsychiatry.com</Text>
-          <Text style={styles.demoText}>Password: doctor123</Text>
+
+          <View style={styles.demoContainer}>
+            <TouchableOpacity style={styles.demoButton} onPress={fillDemoCredentials}>
+              <Icon name="play-circle-filled" size={20} color="#6366f1" style={styles.demoIcon} />
+              <Text style={styles.demoButtonText}>Try Demo Account</Text>
+            </TouchableOpacity>
+            <Text style={styles.demoText}>Email: dr.smith@telepsychiatry.com</Text>
+            <Text style={styles.demoText}>Password: doctor123</Text>
+          </View>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
-        <TouchableOpacity
-          style={[styles.loginButton, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.loginButtonText}>Login</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.featuresCard}>
+          <Text style={styles.featuresTitle}>Available Features</Text>
+          <View style={styles.featureGrid}>
+            <View style={styles.featureItem}>
+              <Feather name="calendar" size={20} color="#6366f1" />
+              <Text style={styles.featureText}>Appointments</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Feather name="video" size={20} color="#6366f1" />
+              <Text style={styles.featureText}>Video Calls</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Feather name="file-text" size={20} color="#6366f1" />
+              <Text style={styles.featureText}>Prescriptions</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Feather name="message-circle" size={20} color="#6366f1" />
+              <Text style={styles.featureText}>Patient Chat</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Feather name="folder" size={20} color="#6366f1" />
+              <Text style={styles.featureText}>Records</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Feather name="bar-chart" size={20} color="#6366f1" />
+              <Text style={styles.featureText}>Reports</Text>
+            </View>
+          </View>
+        </View>
 
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backButtonText}>← Back to Main</Text>
+          <Feather name="arrow-left" size={20} color="#6b7280" />
+          <Text style={styles.backButtonText}>Back to Role Selection</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.featuresContainer}>
-        <Text style={styles.featuresTitle}>Doctor Features:</Text>
-        <View style={styles.featureList}>
-          <Text style={styles.featureItem}>• View patient appointments</Text>
-          <Text style={styles.featureItem}>• Conduct video consultations</Text>
-          <Text style={styles.featureItem}>• Write prescriptions</Text>
-          <Text style={styles.featureItem}>• Chat with patients</Text>
-          <Text style={styles.featureItem}>• Manage medical records</Text>
-          <Text style={styles.featureItem}>• Update patient information</Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -124,105 +202,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   header: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 30,
-    backgroundColor: '#6366f1',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#e0e7ff',
-    fontWeight: '500',
-  },
-  formContainer: {
-    paddingHorizontal: 30,
-    paddingTop: 30,
-  },
-  infoContainer: {
-    backgroundColor: '#fef3c7',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: '#f59e0b',
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#92400e',
-    textAlign: 'center',
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#92400e',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  demoContainer: {
-    backgroundColor: '#eef2ff',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: '#6366f1',
-  },
-  demoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#3730a3',
-    textAlign: 'center',
-  },
-  demoButton: {
-    backgroundColor: '#6366f1',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  demoButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  demoText: {
-    fontSize: 14,
-    color: '#3730a3',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    padding: 15,
-    marginBottom: 15,
-    borderRadius: 12,
     backgroundColor: '#ffffff',
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  loginButton: {
-    backgroundColor: '#6366f1',
-    padding: 18,
-    borderRadius: 12,
+    paddingTop: 60,
+    paddingBottom: 40,
     alignItems: 'center',
-    marginTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  logoContainer: {
+    marginBottom: 20,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -232,53 +228,219 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  logoImage: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    fontWeight: '400',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 40,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 24,
+  },
+  infoBox: {
+    backgroundColor: '#f3f4f6',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  inputWrapper: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1f2937',
+    paddingVertical: 16,
+  },
+  eyeIcon: {
+    padding: 4,
+  },
+  loginButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
+    marginBottom: 24,
+    shadowColor: '#6366f1',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loginButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
   loginButtonText: {
     color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  buttonIcon: {
+    marginLeft: 4,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  demoContainer: {
+    backgroundColor: '#f3f4f6',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  demoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 8,
+  },
+  demoIcon: {
+    marginRight: 8,
+  },
+  demoButtonText: {
+    color: '#6366f1',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  demoText: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 3,
+  },
+  featuresCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 24,
+  },
+  featuresTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  featureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  featureItem: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  featureText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 8,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   backButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 25,
-    padding: 15,
+    justifyContent: 'center',
+    paddingVertical: 16,
   },
   backButtonText: {
     color: '#6b7280',
     fontSize: 16,
-  },
-  featuresContainer: {
-    paddingHorizontal: 30,
-    paddingBottom: 40,
-    paddingTop: 20,
-  },
-  featuresTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  featureList: {
-    backgroundColor: '#ffffff',
-    padding: 20,
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  featureItem: {
-    fontSize: 16,
-    color: '#374151',
-    marginBottom: 10,
-    lineHeight: 24,
+    marginLeft: 8,
+    fontWeight: '500',
   },
 });
 

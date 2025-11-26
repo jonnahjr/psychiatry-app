@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { apiService } from '../../services/api.service';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,6 +34,19 @@ const VideoCallScreen = () => {
   const [remoteStream, setRemoteStream] = useState<any>(null);
   const [localStream, setLocalStream] = useState<any>(null);
   const [appointmentId, setAppointmentId] = useState<string>('');
+  const isExpoGo = false; // For now, assume we're not in Expo Go
+
+  const socketURL = useMemo(() => {
+    try {
+      const base = apiService.getBaseURL();
+      if (!base) {
+        return 'http://localhost:5000';
+      }
+      return base.replace(/\/api\/?$/, '');
+    } catch {
+      return 'http://localhost:5000';
+    }
+  }, []);
 
   // WebRTC configuration
   const configuration = {
@@ -43,65 +57,87 @@ const VideoCallScreen = () => {
   };
 
   useEffect(() => {
-    // Get appointment ID from route params
-    const params = route.params as any;
+    const params = route.params as { appointmentId?: string } | undefined;
     if (params?.appointmentId) {
       setAppointmentId(params.appointmentId);
+    } else {
+      setAppointmentId('demo-appointment-1');
+    }
+  }, [route.params]);
+
+  const loadWebRTCModule = useCallback(async () => {
+    if (isExpoGo) {
+      console.warn('react-native-webrtc is not available inside Expo Go.');
+      setWebRTC(null);
+      setRTCViewComp(null);
+      return;
     }
 
-    // Try to dynamically load react-native-webrtc. If it fails
-    // (e.g. running in Expo Go), we set `webrtc` to null and the
-    // UI will show a fallback message.
-    (async () => {
-      try {
-        const mod = await import('react-native-webrtc');
-        setWebRTC(mod);
-        setRTCViewComp(mod.RTCView || (mod as any).default?.RTCView || null);
-      } catch (err) {
-        console.warn('react-native-webrtc not available:', err);
-        setWebRTC(null);
-        setRTCViewComp(null);
-      }
-    })();
+    try {
+      const mod = await import('react-native-webrtc');
+      setWebRTC(mod);
+      setRTCViewComp(mod.RTCView || (mod as any).default?.RTCView || null);
+    } catch (err) {
+      console.warn('react-native-webrtc not available:', err);
+      setWebRTC(null);
+      setRTCViewComp(null);
+    }
+  }, [isExpoGo]);
 
-    initializeSocket();
+  useEffect(() => {
+    if (!appointmentId) {
+      return;
+    }
+
+    loadWebRTCModule();
     requestPermissions();
+    initializeSocket(appointmentId);
 
     return () => {
-      cleanup();
+      cleanup(false);
     };
-  }, [appointmentId]);
+  }, [appointmentId, loadWebRTCModule]);
 
   const requestPermissions = async () => {
     try {
-      if (Platform.OS === 'android') {
-        // Request camera and microphone permissions
-        const permissions = await import('react-native-permissions');
-        const results = await permissions.requestMultiple([
-          permissions.PERMISSIONS.ANDROID.CAMERA,
-          permissions.PERMISSIONS.ANDROID.RECORD_AUDIO,
-        ]);
+      if (Platform.OS !== 'android') {
+        return;
+      }
 
-        if (
-          results[permissions.PERMISSIONS.ANDROID.CAMERA] !== 'granted' ||
-          results[permissions.PERMISSIONS.ANDROID.RECORD_AUDIO] !== 'granted'
-        ) {
-          Alert.alert('Permissions Required', 'Camera and microphone permissions are required for video calls.');
-          return;
-        }
+      if (isExpoGo) {
+        console.warn('Skipping native permission request in Expo Go environment.');
+        return;
+      }
+
+      const permissions = await import('react-native-permissions');
+      const results = await permissions.requestMultiple([
+        permissions.PERMISSIONS.ANDROID.CAMERA,
+        permissions.PERMISSIONS.ANDROID.RECORD_AUDIO,
+      ]);
+
+      if (
+        results[permissions.PERMISSIONS.ANDROID.CAMERA] !== 'granted' ||
+        results[permissions.PERMISSIONS.ANDROID.RECORD_AUDIO] !== 'granted'
+      ) {
+        Alert.alert('Permissions Required', 'Camera and microphone permissions are required for video calls.');
+        return;
       }
     } catch (error) {
-      console.error('Error requesting permissions:', error);
+      console.warn('Error requesting permissions or permissions module unavailable:', error);
     }
   };
 
-  const initializeSocket = () => {
-    if (!appointmentId) {
+  const initializeSocket = (id: string) => {
+    if (!id) {
       console.error('No appointment ID provided for socket connection');
       return;
     }
 
-    socketRef.current = io('http://localhost:5000', {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+
+    socketRef.current = io(socketURL, {
       transports: ['websocket'],
       timeout: 20000,
       forceNew: true,
@@ -110,7 +146,7 @@ const VideoCallScreen = () => {
     socketRef.current.on('connect', () => {
       console.log('Connected to signaling server');
       setIsConnected(true);
-      socketRef.current?.emit('join-appointment', appointmentId);
+      socketRef.current?.emit('join-appointment', id);
     });
 
     socketRef.current.on('disconnect', () => {
@@ -326,7 +362,7 @@ const VideoCallScreen = () => {
     navigation.goBack();
   };
 
-  const cleanup = () => {
+  const cleanup = (resetAppointment = true) => {
     try {
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track: any) => {
@@ -351,6 +387,9 @@ const VideoCallScreen = () => {
       setRemoteStream(null);
       setIsCallActive(false);
       setIsConnected(false);
+      if (resetAppointment) {
+        setAppointmentId('');
+      }
     } catch (error) {
       console.error('Error during cleanup:', error);
     }

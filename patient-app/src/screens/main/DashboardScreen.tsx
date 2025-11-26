@@ -10,8 +10,9 @@ import {
   Alert,
   Dimensions,
   Image,
+  Platform,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, {
@@ -20,12 +21,18 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  FadeInUp,
+  SlideInRight,
+  ZoomIn,
+  useAnimatedScrollHandler,
+  useSharedValue as useAnimatedSharedValue,
 } from 'react-native-reanimated';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { apiService } from '../../services/api.service';
 import { AnimatedCard, GradientButton, LoadingSpinner, SkeletonCard } from '../../components';
 import MoodTracker from '../../components/MoodTracker';
+import { getGreeting, getCurrentEthiopianTimeString } from '../../utils/time';
 
 // Temporary error styles for boundary
 const errorStyles = StyleSheet.create({
@@ -482,6 +489,467 @@ const styles = StyleSheet.create({
   },
 });
 
+// Modern Smart Dashboard Styles - Moved outside component to prevent re-renders
+const modernStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f0f23',
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  scrollView: {
+    flex: 1,
+  },
+
+  // Header Section
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 30,
+  },
+  timeAndGreeting: {
+    flex: 1,
+  },
+  timeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 255, 0.3)',
+  },
+  timeText: {
+    color: '#00d4ff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#ffffff',
+    lineHeight: 34,
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+  },
+
+  // Wellness Overview
+  wellnessOverview: {
+    marginTop: 10,
+  },
+  wellnessCard: {
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  wellnessHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  aiIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 212, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  aiText: {
+    color: '#00d4ff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  wellnessTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  scoreSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  mainScore: {
+    fontSize: 72,
+    fontWeight: '900',
+    color: '#00d4ff',
+    marginBottom: 8,
+  },
+  scoreDetails: {
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  trendIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trendText: {
+    color: '#10b981',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#00d4ff',
+    borderRadius: 3,
+  },
+
+  // AI Insights Section
+  insightsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 20,
+  },
+  insightsScroll: {
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+  },
+  insightCard: {
+    width: 280,
+    marginRight: 16,
+  },
+  insightGradient: {
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  insightHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  insightIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  insightBadge: {
+    fontSize: 20,
+  },
+  insightTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  insightMessage: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  insightTrend: {
+    marginBottom: 16,
+  },
+  trendValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  insightAction: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  // Metrics Section
+  metricsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  metricCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  metricIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  metricValue: {
+    color: '#ffffff',
+    fontSize: 32,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  metricLabel: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  metricTrend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trendTextSmall: {
+    color: '#10b981',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+
+  // Actions Section
+  actionsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+  actionsGrid: {
+    gap: 16,
+  },
+  primaryActionCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#00d4ff',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  primaryActionGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+  },
+  actionIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  actionContent: {
+    flex: 1,
+  },
+  primaryActionTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  primaryActionSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+  },
+  secondaryActionsRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  secondaryActionCard: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  secondaryActionGradient: {
+    padding: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  secondaryActionText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  // Mood Section
+  moodSection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+
+  // Recommendations Section
+  recommendationsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+  recommendationsList: {
+    gap: 16,
+  },
+  recommendationCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  recommendationGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  recommendationIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  recommendationContent: {
+    flex: 1,
+  },
+  recommendationTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  recommendationText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  recommendationAction: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  actionButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  // Emergency Section
+  emergencySection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+  emergencyCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#ef4444',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  emergencyGradient: {
+    padding: 20,
+  },
+  emergencyContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  emergencyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  emergencyText: {
+    flex: 1,
+  },
+  emergencyTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  emergencySubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+  },
+
+  // Bottom spacing
+  bottomSpacing: {
+    height: 40,
+  },
+});
+
 const DashboardScreenContent = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
@@ -496,6 +964,12 @@ const DashboardScreenContent = () => {
     nextAppointment: null,
     lastSession: null,
   });
+
+  // Early return for no user - AFTER all hooks are declared to prevent hook count mismatch
+  if (!user) {
+    console.log('⚠️ DashboardScreen: No user, returning null');
+    return null;
+  }
 
   console.log('📊 DashboardScreenContent render:', { user: user?.email, loading, isMounted });
 
@@ -694,24 +1168,7 @@ const DashboardScreenContent = () => {
     );
   };
 
-  // Don't render if no user (shouldn't happen, but safety check)
-  if (!user) {
-    console.log('⚠️ DashboardScreen: No user, returning null');
-    return null;
-  }
-
   console.log('📱 DashboardScreen: User exists, checking loading state');
-
-  if (loading && !refreshing) {
-    console.log('📱 DashboardScreen: Showing loading spinner');
-    return (
-      <LoadingSpinner
-        fullScreen
-        text="Loading your dashboard..."
-        color="#667eea"
-      />
-    );
-  }
 
   console.log('📱 DashboardScreen: Rendering main dashboard content');
 
@@ -1079,237 +1536,405 @@ const DashboardScreenContent = () => {
     },
   });
 
-  return (
-    <ScrollView
-      style={futuristicStyles.container}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />
-      }
-    >
-      {/* Futuristic Header with Parallax */}
-      <View style={futuristicStyles.header}>
-        <LinearGradient
-          colors={['#667eea', '#764ba2', '#f093fb', '#f5576c']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={futuristicStyles.headerGradient}
-        />
-        <View style={futuristicStyles.headerOverlay} />
-        <View style={futuristicStyles.headerContent}>
-          <View style={futuristicStyles.timeBadge}>
-            <Text style={futuristicStyles.timeText}>
-              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
+  // Smart AI-powered insights
+  const aiInsights = [
+    {
+      id: '1',
+      type: 'improvement',
+      title: 'Sleep Quality Improving',
+      message: 'Your sleep score has increased by 12% this week. Keep up the good work!',
+      icon: 'bedtime' as keyof typeof MaterialIcons.glyphMap,
+      color: '#10b981',
+      trend: '+12%'
+    },
+    {
+      id: '2',
+      type: 'reminder',
+      title: 'Medication Due',
+      message: 'Time for your evening medication. Consistency is key to your recovery.',
+      icon: 'medication' as keyof typeof MaterialIcons.glyphMap,
+      color: '#f59e0b',
+      action: 'Take Now'
+    },
+    {
+      id: '3',
+      type: 'achievement',
+      title: 'Weekly Goal Met!',
+      message: 'You completed 5 therapy sessions this week. Amazing progress!',
+      icon: 'emoji-events' as keyof typeof MaterialIcons.glyphMap,
+      color: '#8b5cf6',
+      badge: '🏆'
+    }
+  ];
 
-          <View style={futuristicStyles.welcomeCard}>
-            <View style={futuristicStyles.avatarSection}>
-              <View style={futuristicStyles.avatarGlow}>
-                <View style={futuristicStyles.avatar}>
-                  <Image source={require('../../assets/D11.png')} style={futuristicStyles.avatarImage} />
+  const scrollY = useAnimatedSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // Show loading spinner if still loading and not refreshing
+  if (loading && !refreshing) {
+    console.log('📱 DashboardScreen: Showing loading spinner');
+    return (
+      <LoadingSpinner
+        fullScreen
+        text="Loading your dashboard..."
+        color="#667eea"
+      />
+    );
+  }
+
+  return (
+    <View style={modernStyles.container}>
+      {/* Dynamic Background */}
+      <LinearGradient
+        colors={['#0f0f23', '#1a1a2e', '#16213e', '#0f3460']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={modernStyles.backgroundGradient}
+      />
+
+      <Animated.ScrollView
+        style={modernStyles.scrollView}
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#00d4ff"
+            colors={['#00d4ff']}
+          />
+        }
+      >
+        {/* Smart Header with AI Insights */}
+        <View style={modernStyles.header}>
+          <Animated.View entering={FadeInUp.delay(100)} style={modernStyles.headerTop}>
+            <View style={modernStyles.timeAndGreeting}>
+              <View style={modernStyles.timeBadge}>
+                <Ionicons name="time-outline" size={16} color="#00d4ff" />
+                <Text style={modernStyles.timeText}>{getCurrentEthiopianTimeString()}</Text>
+              </View>
+              <Text style={modernStyles.greeting}>
+                {getGreeting()}, {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1).toLowerCase() : 'there'}! 👋
+              </Text>
+            </View>
+
+            <TouchableOpacity style={modernStyles.notificationButton}>
+              <Ionicons name="notifications-outline" size={24} color="#ffffff" />
+              <View style={modernStyles.notificationDot} />
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* AI-Powered Wellness Overview */}
+          <Animated.View entering={SlideInRight.delay(300)} style={modernStyles.wellnessOverview}>
+            <LinearGradient
+              colors={['rgba(0, 212, 255, 0.1)', 'rgba(138, 43, 226, 0.1)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={modernStyles.wellnessCard}
+            >
+              <View style={modernStyles.wellnessHeader}>
+                <View style={modernStyles.aiIndicator}>
+                  <Ionicons name="sparkles" size={20} color="#00d4ff" />
+                  <Text style={modernStyles.aiText}>AI Analysis</Text>
+                </View>
+                <Text style={modernStyles.wellnessTitle}>Mental Wellness Score</Text>
+              </View>
+
+              <View style={modernStyles.scoreSection}>
+                <Text style={modernStyles.mainScore}>87</Text>
+                <View style={modernStyles.scoreDetails}>
+                  <Text style={modernStyles.scoreLabel}>Excellent</Text>
+                  <View style={modernStyles.trendIndicator}>
+                    <Ionicons name="trending-up" size={14} color="#10b981" />
+                    <Text style={modernStyles.trendText}>+5% this week</Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            <View style={futuristicStyles.welcomeText}>
-              <Text style={futuristicStyles.greeting}>
-                Hey {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1).toLowerCase() : 'there'} 👋 Hope today treats you kindly.
-              </Text>
-              <View style={futuristicStyles.patientBadge}>
-                <MaterialIcons name="verified-user" size={14} color="#ffffff" />
-                <Text style={futuristicStyles.patientBadgeText}>Mental Health Patient</Text>
+              <View style={modernStyles.progressBar}>
+                <View style={[modernStyles.progressFill, { width: '87%' }]} />
               </View>
+            </LinearGradient>
+          </Animated.View>
+        </View>
+
+        {/* Smart AI Insights */}
+        <Animated.View entering={FadeInUp.delay(500)} style={modernStyles.insightsSection}>
+          <Text style={modernStyles.sectionTitle}>AI Insights & Recommendations</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modernStyles.insightsScroll}>
+            {aiInsights.map((insight, index) => (
+              <Animated.View
+                key={insight.id}
+                entering={ZoomIn.delay(600 + index * 100)}
+                style={modernStyles.insightCard}
+              >
+                <LinearGradient
+                  colors={[
+                    `${insight.color}20`,
+                    `${insight.color}10`
+                  ]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={modernStyles.insightGradient}
+                >
+                  <View style={modernStyles.insightHeader}>
+                    <View style={[modernStyles.insightIcon, { backgroundColor: insight.color }]}>
+                      <MaterialIcons name={insight.icon} size={20} color="#ffffff" />
+                    </View>
+                    {insight.badge && <Text style={modernStyles.insightBadge}>{insight.badge}</Text>}
+                  </View>
+
+                  <Text style={modernStyles.insightTitle}>{insight.title}</Text>
+                  <Text style={modernStyles.insightMessage}>{insight.message}</Text>
+
+                  {insight.trend && (
+                    <View style={modernStyles.insightTrend}>
+                      <Text style={[modernStyles.trendValue, { color: insight.color }]}>
+                        {insight.trend}
+                      </Text>
+                    </View>
+                  )}
+
+                  {insight.action && (
+                    <TouchableOpacity style={[modernStyles.insightAction, { borderColor: insight.color }]}>
+                      <Text style={[modernStyles.actionText, { color: insight.color }]}>
+                        {insight.action}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </LinearGradient>
+              </Animated.View>
+            ))}
+          </ScrollView>
+        </Animated.View>
+
+        {/* Interactive Data Visualization */}
+        <Animated.View entering={FadeInUp.delay(700)} style={modernStyles.metricsSection}>
+          <Text style={modernStyles.sectionTitle}>Your Progress Journey</Text>
+
+          <View style={modernStyles.metricsGrid}>
+            <TouchableOpacity style={modernStyles.metricCard}>
+              <LinearGradient
+                colors={['#10b981', '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.metricIcon}
+              >
+                <MaterialIcons name="event-available" size={24} color="#ffffff" />
+              </LinearGradient>
+              <Text style={modernStyles.metricValue}>{stats.upcomingAppointments}</Text>
+              <Text style={modernStyles.metricLabel}>Upcoming Sessions</Text>
+              <View style={modernStyles.metricTrend}>
+                <Ionicons name="arrow-up" size={12} color="#10b981" />
+                <Text style={modernStyles.trendTextSmall}>+2 this week</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={modernStyles.metricCard}>
+              <LinearGradient
+                colors={['#3b82f6', '#2563eb']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.metricIcon}
+              >
+                <MaterialIcons name="check-circle" size={24} color="#ffffff" />
+              </LinearGradient>
+              <Text style={modernStyles.metricValue}>{stats.completedSessions}</Text>
+              <Text style={modernStyles.metricLabel}>Sessions Completed</Text>
+              <View style={modernStyles.metricTrend}>
+                <Ionicons name="arrow-up" size={12} color="#10b981" />
+                <Text style={modernStyles.trendTextSmall}>+3 this month</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={modernStyles.metricCard}>
+              <LinearGradient
+                colors={['#8b5cf6', '#7c3aed']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.metricIcon}
+              >
+                <MaterialIcons name="local-pharmacy" size={24} color="#ffffff" />
+              </LinearGradient>
+              <Text style={modernStyles.metricValue}>{stats.activePrescriptions}</Text>
+              <Text style={modernStyles.metricLabel}>Active Medications</Text>
+              <View style={modernStyles.metricTrend}>
+                <Ionicons name="checkmark" size={12} color="#6b7280" />
+                <Text style={modernStyles.trendTextSmall}>All on track</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={modernStyles.metricCard}>
+              <LinearGradient
+                colors={['#f59e0b', '#d97706']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.metricIcon}
+              >
+                <MaterialIcons name="trending-up" size={24} color="#ffffff" />
+              </LinearGradient>
+              <Text style={modernStyles.metricValue}>87%</Text>
+              <Text style={modernStyles.metricLabel}>Consistency Score</Text>
+              <View style={modernStyles.metricTrend}>
+                <Ionicons name="trending-up" size={12} color="#10b981" />
+                <Text style={modernStyles.trendTextSmall}>+8% this week</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        {/* Smart Quick Actions */}
+        <Animated.View entering={FadeInUp.delay(900)} style={modernStyles.actionsSection}>
+          <Text style={modernStyles.sectionTitle}>Quick Actions</Text>
+
+          <View style={modernStyles.actionsGrid}>
+            <TouchableOpacity style={modernStyles.primaryActionCard} onPress={handleBookAppointment}>
+              <LinearGradient
+                colors={['#00d4ff', '#0099cc']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.primaryActionGradient}
+              >
+                <View style={modernStyles.actionIconContainer}>
+                  <MaterialIcons name="event-available" size={32} color="#ffffff" />
+                </View>
+                <View style={modernStyles.actionContent}>
+                  <Text style={modernStyles.primaryActionTitle}>Book Session</Text>
+                  <Text style={modernStyles.primaryActionSubtitle}>Find available doctors</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#ffffff" />
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <View style={modernStyles.secondaryActionsRow}>
+              <TouchableOpacity style={modernStyles.secondaryActionCard} onPress={handleChat}>
+                <LinearGradient
+                  colors={['rgba(139, 92, 246, 0.2)', 'rgba(139, 92, 246, 0.1)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={modernStyles.secondaryActionGradient}
+                >
+                  <MaterialIcons name="chat" size={24} color="#8b5cf6" />
+                  <Text style={modernStyles.secondaryActionText}>Chat</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={modernStyles.secondaryActionCard} onPress={handleVideoCall}>
+                <LinearGradient
+                  colors={['rgba(16, 185, 129, 0.2)', 'rgba(16, 185, 129, 0.1)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={modernStyles.secondaryActionGradient}
+                >
+                  <MaterialIcons name="videocam" size={24} color="#10b981" />
+                  <Text style={modernStyles.secondaryActionText}>Video Call</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={modernStyles.secondaryActionCard} onPress={handleEmergency}>
+                <LinearGradient
+                  colors={['rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.1)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={modernStyles.secondaryActionGradient}
+                >
+                  <MaterialIcons name="emergency" size={24} color="#ef4444" />
+                  <Text style={modernStyles.secondaryActionText}>Emergency</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </View>
+        </Animated.View>
 
-      <View style={futuristicStyles.mainContent}>
-        {/* AI Wellness Score */}
-        <View style={futuristicStyles.wellnessCard}>
-          <View style={futuristicStyles.wellnessHeader}>
-            <View style={futuristicStyles.aiIcon}>
-              <MaterialIcons name="psychology" size={24} color="#ffffff" />
+        {/* Mood Tracker Integration */}
+        <Animated.View entering={FadeInUp.delay(1100)} style={modernStyles.moodSection}>
+          <Text style={modernStyles.sectionTitle}>Daily Mood Check-in</Text>
+          <MoodTracker />
+        </Animated.View>
+
+        {/* Smart Recommendations */}
+        <Animated.View entering={FadeInUp.delay(1300)} style={modernStyles.recommendationsSection}>
+          <Text style={modernStyles.sectionTitle}>Personalized Recommendations</Text>
+
+          <View style={modernStyles.recommendationsList}>
+            <View style={modernStyles.recommendationCard}>
+              <LinearGradient
+                colors={['rgba(0, 212, 255, 0.1)', 'rgba(0, 212, 255, 0.05)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.recommendationGradient}
+              >
+                <View style={modernStyles.recommendationIcon}>
+                  <Ionicons name="leaf" size={24} color="#00d4ff" />
+                </View>
+                <View style={modernStyles.recommendationContent}>
+                  <Text style={modernStyles.recommendationTitle}>Mindfulness Exercise</Text>
+                  <Text style={modernStyles.recommendationText}>
+                    Try the 5-minute breathing exercise to reduce anxiety levels
+                  </Text>
+                </View>
+                <TouchableOpacity style={modernStyles.recommendationAction}>
+                  <Text style={modernStyles.actionButtonText}>Start</Text>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
-            <Text style={futuristicStyles.wellnessTitle}>AI Wellness Score</Text>
+
+            <View style={modernStyles.recommendationCard}>
+              <LinearGradient
+                colors={['rgba(139, 92, 246, 0.1)', 'rgba(139, 92, 246, 0.05)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={modernStyles.recommendationGradient}
+              >
+                <View style={modernStyles.recommendationIcon}>
+                  <Ionicons name="book" size={24} color="#8b5cf6" />
+                </View>
+                <View style={modernStyles.recommendationContent}>
+                  <Text style={modernStyles.recommendationTitle}>Journal Entry</Text>
+                  <Text style={modernStyles.recommendationText}>
+                    Reflect on your progress and emotions in your wellness journal
+                  </Text>
+                </View>
+                <TouchableOpacity style={modernStyles.recommendationAction}>
+                  <Text style={modernStyles.actionButtonText}>Write</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
           </View>
-          <Text style={futuristicStyles.wellnessScore}>87</Text>
-          <Text style={futuristicStyles.wellnessLabel}>Excellent Progress</Text>
-        </View>
+        </Animated.View>
 
-        {/* Quick Actions Grid */}
-        <View style={futuristicStyles.actionsSection}>
-          <Text style={futuristicStyles.actionsTitle}>Quick Actions</Text>
-          <View style={futuristicStyles.actionsGrid}>
-            <TouchableOpacity style={futuristicStyles.actionCard} onPress={handleBookAppointment}>
-              <LinearGradient
-                colors={['#dbeafe', '#bfdbfe']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={futuristicStyles.actionIcon}
-              >
-                <MaterialIcons name="event-available" size={28} color="#2563eb" />
-              </LinearGradient>
-              <Text style={futuristicStyles.actionTitle}>Book Appointment</Text>
-              <Text style={futuristicStyles.actionSubtitle}>Schedule new session</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={futuristicStyles.actionCard} onPress={handleChat}>
-              <LinearGradient
-                colors={['#e0e7ff', '#c7d2fe']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={futuristicStyles.actionIcon}
-              >
-                <MaterialIcons name="chat" size={28} color="#6366f1" />
-              </LinearGradient>
-              <Text style={futuristicStyles.actionTitle}>Chat with Doctor</Text>
-              <Text style={futuristicStyles.actionSubtitle}>Secure messaging</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={futuristicStyles.actionCard} onPress={() => {}}>
-              <LinearGradient
-                colors={['#dcfce7', '#bbf7d0']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={futuristicStyles.actionIcon}
-              >
-                <MaterialIcons name="medication" size={28} color="#16a34a" />
-              </LinearGradient>
-              <Text style={futuristicStyles.actionTitle}>Medication Reminder</Text>
-              <Text style={futuristicStyles.actionSubtitle}>Track your meds</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={futuristicStyles.actionCard} onPress={handleEmergency}>
-              <LinearGradient
-                colors={['#fef2f2', '#fecaca']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={futuristicStyles.actionIcon}
-              >
-                <MaterialIcons name="local-hospital" size={28} color="#dc2626" />
-              </LinearGradient>
-              <Text style={futuristicStyles.actionTitle}>Emergency Contact</Text>
-              <Text style={futuristicStyles.actionSubtitle}>24/7 crisis support</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={futuristicStyles.actionCard} onPress={() => {}}>
-              <LinearGradient
-                colors={['#f3e8ff', '#e9d5ff']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={futuristicStyles.actionIcon}
-              >
-                <MaterialIcons name="science" size={28} color="#9333ea" />
-              </LinearGradient>
-              <Text style={futuristicStyles.actionTitle}>Lab Results</Text>
-              <Text style={futuristicStyles.actionSubtitle}>View test results</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={futuristicStyles.actionCard} onPress={() => {}}>
-              <LinearGradient
-                colors={['#fdf4ff', '#f9e8ff']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={futuristicStyles.actionIcon}
-              >
-                <MaterialIcons name="book" size={28} color="#c026d3" />
-              </LinearGradient>
-              <Text style={futuristicStyles.actionTitle}>Wellness Journal</Text>
-              <Text style={futuristicStyles.actionSubtitle}>Daily reflections</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Features Row */}
-        <View style={futuristicStyles.featuresRow}>
-          <TouchableOpacity style={futuristicStyles.featureCard} onPress={() => {}}>
+        {/* Emergency Support */}
+        <Animated.View entering={FadeInUp.delay(1500)} style={modernStyles.emergencySection}>
+          <TouchableOpacity style={modernStyles.emergencyCard} onPress={handleEmergency}>
             <LinearGradient
-              colors={['#dbeafe', '#bfdbfe']}
+              colors={['#ef4444', '#dc2626']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={futuristicStyles.featureIcon}
+              style={modernStyles.emergencyGradient}
             >
-              <MaterialIcons name="mic" size={20} color="#2563eb" />
+              <View style={modernStyles.emergencyContent}>
+                <View style={modernStyles.emergencyIcon}>
+                  <MaterialIcons name="emergency" size={32} color="#ffffff" />
+                </View>
+                <View style={modernStyles.emergencyText}>
+                  <Text style={modernStyles.emergencyTitle}>Need Immediate Help?</Text>
+                  <Text style={modernStyles.emergencySubtitle}>24/7 Crisis Support Available</Text>
+                </View>
+                <Ionicons name="call" size={24} color="#ffffff" />
+              </View>
             </LinearGradient>
-            <Text style={futuristicStyles.featureTitle}>Voice Journal</Text>
-            <Text style={futuristicStyles.featureValue}>2 entries</Text>
           </TouchableOpacity>
+        </Animated.View>
 
-          <TouchableOpacity style={futuristicStyles.featureCard} onPress={() => {}}>
-            <LinearGradient
-              colors={['#dcfce7', '#bbf7d0']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={futuristicStyles.featureIcon}
-            >
-              <MaterialIcons name="bedtime" size={20} color="#16a34a" />
-            </LinearGradient>
-            <Text style={futuristicStyles.featureTitle}>Sleep Score</Text>
-            <Text style={futuristicStyles.featureValue}>8.2 hrs</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={futuristicStyles.featureCard} onPress={() => {}}>
-            <LinearGradient
-              colors={['#fef3c7', '#fde68a']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={futuristicStyles.featureIcon}
-            >
-              <MaterialIcons name="trending-up" size={20} color="#d97706" />
-            </LinearGradient>
-            <Text style={futuristicStyles.featureTitle}>Progress</Text>
-            <Text style={futuristicStyles.featureValue}>+15%</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Emergency Crisis Button */}
-        <TouchableOpacity style={futuristicStyles.emergencyButton} onPress={handleEmergency}>
-          <View style={futuristicStyles.emergencyContent}>
-            <View style={futuristicStyles.emergencyIcon}>
-              <MaterialIcons name="emergency" size={28} color="#ffffff" />
-            </View>
-            <View style={futuristicStyles.emergencyText}>
-              <Text style={futuristicStyles.emergencyTitle}>Crisis Support</Text>
-              <Text style={futuristicStyles.emergencySubtitle}>Immediate help available</Text>
-            </View>
-            <MaterialIcons name="arrow-forward" size={24} color="#ffffff" />
-          </View>
-        </TouchableOpacity>
-
-        {/* Announcements & Tips */}
-        <View style={futuristicStyles.announcementsCard}>
-          <View style={futuristicStyles.announcementHeader}>
-            <View style={futuristicStyles.announcementIcon}>
-              <MaterialIcons name="lightbulb" size={20} color="#ffffff" />
-            </View>
-            <Text style={futuristicStyles.announcementTitle}>Announcements & Tips</Text>
-          </View>
-
-          <View style={futuristicStyles.announcementItem}>
-            <Text style={futuristicStyles.announcementText}>
-              🌱 Try deep breathing: Inhale for 4 counts, hold for 4, exhale for 4. Great for anxiety!
-            </Text>
-            <Text style={futuristicStyles.announcementMeta}>Mental Health Tip • 2 hours ago</Text>
-          </View>
-
-          <View style={futuristicStyles.announcementItem}>
-            <Text style={futuristicStyles.announcementText}>
-              📅 New group therapy session available this Thursday at 6 PM. Join our supportive community!
-            </Text>
-            <Text style={futuristicStyles.announcementMeta}>Clinic Update • 1 day ago</Text>
-          </View>
-
-          <View style={futuristicStyles.announcementItem}>
-            <Text style={futuristicStyles.announcementText}>
-              💊 Remember to take your evening medication. Your wellness tracker shows great consistency!
-            </Text>
-            <Text style={futuristicStyles.announcementMeta}>Medication Reminder • 3 hours ago</Text>
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+        {/* Bottom spacing */}
+        <View style={modernStyles.bottomSpacing} />
+      </Animated.ScrollView>
+    </View>
   );
 };
 

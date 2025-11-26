@@ -17,6 +17,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
 import { DoctorCard } from '../../components/DoctorCard';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface Doctor {
   id: string;
@@ -47,6 +48,7 @@ interface FilterState {
 
 const DoctorsScreen = () => {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeQuickFilter, setActiveQuickFilter] = useState<'all' | 'online' | 'topRated' | 'budget'>('all');
@@ -239,7 +241,7 @@ const DoctorsScreen = () => {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews={true}

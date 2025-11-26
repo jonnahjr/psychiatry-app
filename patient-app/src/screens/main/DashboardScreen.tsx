@@ -32,7 +32,9 @@ import { useNavigation } from '@react-navigation/native';
 import { apiService } from '../../services/api.service';
 import { AnimatedCard, GradientButton, LoadingSpinner, SkeletonCard } from '../../components';
 import MoodTracker from '../../components/MoodTracker';
+import { ThemeToggle } from '../../components/ThemeToggle';
 import { getGreeting, getCurrentEthiopianTimeString } from '../../utils/time';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Temporary error styles for boundary
 const errorStyles = StyleSheet.create({
@@ -953,6 +955,7 @@ const modernStyles = StyleSheet.create({
 const DashboardScreenContent = () => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isMounted, setIsMounted] = useState(true);
@@ -1178,7 +1181,7 @@ const DashboardScreenContent = () => {
   const futuristicStyles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#f8fafc',
+      backgroundColor: '#0f0f23',
     },
 
     // Header with Parallax Effect
@@ -1623,10 +1626,13 @@ const DashboardScreenContent = () => {
               </Text>
             </View>
 
-            <TouchableOpacity style={modernStyles.notificationButton}>
-              <Ionicons name="notifications-outline" size={24} color="#ffffff" />
-              <View style={modernStyles.notificationDot} />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity style={modernStyles.notificationButton}>
+                <Ionicons name="notifications-outline" size={24} color="#ffffff" />
+                <View style={modernStyles.notificationDot} />
+              </TouchableOpacity>
+              <ThemeToggle size={24} />
+            </View>
           </Animated.View>
 
           {/* AI-Powered Wellness Overview */}

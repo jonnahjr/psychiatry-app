@@ -6,8 +6,21 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import {AuthProvider} from './src/contexts/AuthContext';
-import {ThemeProvider} from './src/contexts/ThemeContext';
+import {ThemeProvider, useTheme} from './src/contexts/ThemeContext';
 import {NotificationProvider} from './src/contexts/NotificationContext';
+
+// Themed StatusBar Component
+const ThemedStatusBar = () => {
+  const { isDarkMode, theme } = useTheme();
+
+  return (
+    <StatusBar
+      barStyle={isDarkMode ? "light-content" : "dark-content"}
+      backgroundColor={theme.background}
+      translucent={false}
+    />
+  );
+};
 
 // Global Error Boundary Component
 class GlobalErrorBoundary extends React.Component<
@@ -164,11 +177,7 @@ const App = () => {
                     }
                   }}
                 >
-                  <StatusBar
-                    barStyle="light-content"
-                    backgroundColor="#1a1a2e"
-                    translucent={false}
-                  />
+                  <ThemedStatusBar />
                   <AppNavigator />
                 </NavigationContainer>
               </NotificationProvider>

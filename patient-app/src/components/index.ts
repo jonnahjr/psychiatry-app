@@ -5,4 +5,5 @@ export { SkeletonLoader, SkeletonCard } from './SkeletonLoader';
 export { default as MoodTracker } from './MoodTracker';
 export { GlassCard } from './GlassCard';
 export { MedicalButton } from './MedicalButton';
+export { ThemeToggle } from './ThemeToggle';
 export { BottomTabNavigator } from './BottomTabNavigator';

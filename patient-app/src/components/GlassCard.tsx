@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, borderRadius, shadows } from '../utils/theme';
@@ -9,12 +9,12 @@ interface GlassCardProps {
   variant?: 'default' | 'elevated' | 'outlined';
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({
+export const GlassCard: React.FC<GlassCardProps> = React.memo(({
   children,
   style,
   variant = 'default'
 }) => {
-  const getVariantStyles = () => {
+  const variantStyles = useMemo(() => {
     switch (variant) {
       case 'elevated':
         return {
@@ -33,7 +33,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
         };
     }
-  };
+  }, [variant]);
 
   return (
     <View
@@ -44,11 +44,11 @@ export const GlassCard: React.FC<GlassCardProps> = ({
           borderColor: colors.glass.border,
           overflow: 'hidden',
         },
-        getVariantStyles(),
+        variantStyles,
         style,
       ]}
     >
       {children}
     </View>
   );
-};
+});

@@ -26,7 +26,6 @@ import { useNavigation } from '@react-navigation/native';
 import { apiService } from '../../services/api.service';
 import { AnimatedCard, GradientButton, LoadingSpinner, SkeletonCard } from '../../components';
 import MoodTracker from '../../components/MoodTracker';
-import { getGreeting } from '../../utils/time';
 
 // Temporary error styles for boundary
 const errorStyles = StyleSheet.create({
@@ -1115,7 +1114,7 @@ const DashboardScreenContent = () => {
 
             <View style={futuristicStyles.welcomeText}>
               <Text style={futuristicStyles.greeting}>
-                {getGreeting()}, {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1).toLowerCase() : 'there'}! 👋
+                Hey {user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1).toLowerCase() : 'there'} 👋 Hope today treats you kindly.
               </Text>
               <View style={futuristicStyles.patientBadge}>
                 <MaterialIcons name="verified-user" size={14} color="#ffffff" />

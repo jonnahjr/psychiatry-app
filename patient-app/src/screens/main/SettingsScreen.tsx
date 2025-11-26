@@ -11,7 +11,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
-import { getGreeting } from '../../utils/time';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -95,10 +94,7 @@ const SettingsScreen = () => {
         >
           <MaterialIcons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerGreeting}>{getGreeting()}!</Text>
-          <Text style={styles.headerTitle}>Settings</Text>
-        </View>
+        <Text style={styles.headerTitle}>Settings</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -371,20 +367,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerContent: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerGreeting: {
-    fontSize: 16,
-    color: '#e0e7ff',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
   headerTitle: {
+    flex: 1,
     fontSize: 20,
     fontWeight: '700',
     color: '#ffffff',
+    textAlign: 'center',
   },
   headerSpacer: {
     width: 40,

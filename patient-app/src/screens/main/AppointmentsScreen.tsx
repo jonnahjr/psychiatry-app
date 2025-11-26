@@ -14,7 +14,6 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
-import { getGreeting } from '../../utils/time';
 
 interface Appointment {
   id: string;
@@ -267,7 +266,6 @@ const AppointmentsScreen = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
       <LinearGradient colors={['#f97316', '#fb7185']} style={styles.heroCard}>
-        <Text style={styles.heroGreeting}>{getGreeting()}!</Text>
         <Text style={styles.heroLabel}>Care timeline</Text>
         {upcomingAppointment ? (
           <>
@@ -427,12 +425,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
     ...shadows.lg,
-  },
-  heroGreeting: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
   },
   heroLabel: {
     color: '#ffe4e6',

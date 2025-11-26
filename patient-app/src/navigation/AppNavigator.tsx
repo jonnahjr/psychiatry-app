@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {View, Text, ActivityIndicator, Image} from 'react-native';
@@ -18,12 +18,12 @@ import PatientLoginScreen from '../screens/auth/PatientLoginScreenNew';
 import DoctorLoginScreen from '../screens/auth/DoctorLoginScreenNew';
 import RegisterScreen from '../screens/auth/RegisterScreenNew';
 
-// Main Screens
-import DashboardScreen from '../screens/main/DashboardScreen';
-import DoctorsScreen from '../screens/main/DoctorsScreen';
-import AppointmentsScreen from '../screens/main/AppointmentsScreen';
-import ProfileScreen from '../screens/main/ProfileScreen';
-import SettingsScreen from '../screens/main/SettingsScreen';
+// Lazy load main screens for better performance
+const DashboardScreen = React.lazy(() => import('../screens/main/DashboardScreen'));
+const DoctorsScreen = React.lazy(() => import('../screens/main/DoctorsScreen'));
+const AppointmentsScreen = React.lazy(() => import('../screens/main/AppointmentsScreen'));
+const ProfileScreen = React.lazy(() => import('../screens/main/ProfileScreen'));
+const SettingsScreen = React.lazy(() => import('../screens/main/SettingsScreen'));
 
 // Doctor Screens (using same components for now - will be customized later)
 const DoctorDashboardScreen = DashboardScreen;
@@ -38,6 +38,14 @@ import VideoCallScreen from '../screens/video/VideoCallScreen';
 // Prescription Screens
 import PrescriptionsScreen from '../screens/prescriptions/PrescriptionsScreen';
 import PrescriptionDetailsScreen from '../screens/prescriptions/PrescriptionDetailsScreen';
+
+// Loading fallback component
+const ScreenLoadingFallback = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
+    <ActivityIndicator size="large" color="#667eea" />
+    <Text style={{ marginTop: 10, color: '#6b7280' }}>Loading...</Text>
+  </View>
+);
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -107,17 +115,42 @@ const PatientTabNavigator = () => {
         },
         tabBarShowLabel: false, // Hide tab labels like Instagram
       })}>
-      <Tab.Screen 
-        name="Dashboard" 
-        component={DashboardScreen}
+      <Tab.Screen
+        name="Dashboard"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <DashboardScreen />
+          </Suspense>
+        )}
         options={{
           title: 'Dashboard',
           headerTitle: 'Patient Dashboard',
         }}
       />
-      <Tab.Screen name="Doctors" component={DoctorsScreen} />
-      <Tab.Screen name="Appointments" component={AppointmentsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen
+        name="Doctors"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <DoctorsScreen />
+          </Suspense>
+        )}
+      />
+      <Tab.Screen
+        name="Appointments"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <AppointmentsScreen />
+          </Suspense>
+        )}
+      />
+      <Tab.Screen
+        name="Profile"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <ProfileScreen />
+          </Suspense>
+        )}
+      />
     </Tab.Navigator>
   );
 };
@@ -161,10 +194,38 @@ const DoctorTabNavigator = () => {
           fontWeight: 'bold',
         },
       })}>
-      <Tab.Screen name="Dashboard" component={DoctorDashboardScreen} />
-      <Tab.Screen name="Patients" component={PatientsScreen} />
-      <Tab.Screen name="Appointments" component={DoctorAppointmentsScreen} />
-      <Tab.Screen name="Profile" component={DoctorProfileScreen} />
+      <Tab.Screen
+        name="Dashboard"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <DoctorDashboardScreen />
+          </Suspense>
+        )}
+      />
+      <Tab.Screen
+        name="Patients"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <PatientsScreen />
+          </Suspense>
+        )}
+      />
+      <Tab.Screen
+        name="Appointments"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <DoctorAppointmentsScreen />
+          </Suspense>
+        )}
+      />
+      <Tab.Screen
+        name="Profile"
+        children={() => (
+          <Suspense fallback={<ScreenLoadingFallback />}>
+            <DoctorProfileScreen />
+          </Suspense>
+        )}
+      />
     </Tab.Navigator>
   );
 };

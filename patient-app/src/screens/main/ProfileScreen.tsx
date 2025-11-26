@@ -26,7 +26,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
-import { getGreeting } from '../../utils/time';
 
 const ProfileScreen = () => {
   const { user, logout, healthMetrics } = useAuth();
@@ -82,7 +81,6 @@ const ProfileScreen = () => {
             </View>
 
             <View style={professionalProfileStyles.userInfo}>
-              <Text style={professionalProfileStyles.greeting}>{getGreeting()}!</Text>
               <Text style={professionalProfileStyles.userName}>
                 {user?.name || 'John Doe'}
               </Text>
@@ -336,12 +334,6 @@ const professionalProfileStyles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
-  },
-  greeting: {
-    fontSize: 16,
-    color: '#e0e7ff',
-    fontWeight: '600',
-    marginBottom: 4,
   },
   userName: {
     fontSize: 24,

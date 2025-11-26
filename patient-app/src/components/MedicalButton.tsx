@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity, Text, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
 import { colors, typography, spacing, borderRadius, shadows } from '../utils/theme';
 
 interface MedicalButtonProps {
@@ -24,7 +24,7 @@ interface VariantStyle {
   borderColor?: string;
 }
 
-export const MedicalButton: React.FC<MedicalButtonProps> = ({
+export const MedicalButton: React.FC<MedicalButtonProps> = React.memo(({
   title,
   onPress,
   variant = 'primary',
@@ -41,13 +41,13 @@ export const MedicalButton: React.FC<MedicalButtonProps> = ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95);
-  };
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+  }, [scale]);
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1);
-  };
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+  }, [scale]);
 
   const getVariantStyles = (): VariantStyle => {
     switch (variant) {
@@ -170,4 +170,4 @@ export const MedicalButton: React.FC<MedicalButtonProps> = ({
       </TouchableOpacity>
     </Animated.View>
   );
-};
+});

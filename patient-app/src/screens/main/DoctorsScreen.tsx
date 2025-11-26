@@ -16,7 +16,6 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { MedicalButton } from '../../components/MedicalButton';
 import { colors, typography, spacing, borderRadius, shadows } from '../../utils/theme';
-import { getGreeting } from '../../utils/time';
 
 interface Doctor {
   id: string;
@@ -281,10 +280,14 @@ const DoctorsScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+      removeClippedSubviews={true}
+    >
       <LinearGradient colors={['#4c6ef5', '#6c5ce7']} style={styles.heroCard}>
         <View>
-          <Text style={styles.heroGreeting}>{getGreeting()}!</Text>
           <Text style={styles.heroSubtitle}>Your care team</Text>
           <Text style={styles.heroTitle}>Handpicked specialists for you</Text>
           <Text style={styles.heroDescription}>
@@ -406,12 +409,6 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     paddingBottom: spacing.xxl,
     ...shadows.md,
-  },
-  heroGreeting: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
   },
   heroSubtitle: {
     color: '#cfd7ff',
